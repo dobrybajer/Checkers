@@ -5,21 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using Checkers.Model;
 
 namespace Checkers
 {
-    public enum PieceType
-    {
-        Pawn,
-        Queen
-    };
-
-    public enum Player
-    {
-        White,
-        Black
-    };
-
     public class CheckersPiece : ViewModelBase
     {
        
@@ -42,6 +31,13 @@ namespace Checkers
         {
             get { return this._Player; }
             set { this._Player = value; RaisePropertyChanged(() => this.Player); }
+        }
+
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get { return this._isSelected; }
+            set { this._isSelected = value; RaisePropertyChanged(() => this.IsSelected); }
         }
     }
 }

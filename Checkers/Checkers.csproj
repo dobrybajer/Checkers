@@ -66,7 +66,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="CheckersPiece.cs" />
+    <Compile Include="Logic\CheckerMove.cs" />
+    <Compile Include="Model\Enums.cs" />
+    <Compile Include="Model\Info.cs" />
+    <Compile Include="Model\Move.cs" />
+    <Compile Include="ViewModel\CheckersPiece.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
     <Page Include="MainWindow.xaml">
@@ -124,6 +128,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\table.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="View\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

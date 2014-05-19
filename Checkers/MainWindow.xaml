@@ -1,7 +1,7 @@
 ﻿<Window x:Class="Checkers.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:Checkers"
+        xmlns:local="clr-namespace:Checkers.Model"
         Title="MainWindow" Width="850" Height="600" MinWidth="850" MinHeight="600">
     <Window.Resources>
         <ImageBrush x:Key="pawn_black" ImageSource="Resources/black_player.png"/>
@@ -30,6 +30,15 @@
         </DrawingBrush>
         <Style x:Key="CheckersPieceStyle" TargetType="{x:Type Rectangle}">
             <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding Type}" Value="{x:Static local:PieceType.Free}"/>
+                        <Condition Binding="{Binding Player}" Value="{x:Static local:Player.None}"/>
+                    </MultiDataTrigger.Conditions>
+                    <MultiDataTrigger.Setters>
+                        <Setter Property="Rectangle.Fill"  Value="Transparent" />
+                    </MultiDataTrigger.Setters>
+                </MultiDataTrigger>
                 <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
                         <Condition Binding="{Binding Type}" Value="{x:Static local:PieceType.Pawn}"/>
@@ -66,6 +75,9 @@
                         <Setter Property="Rectangle.Fill" Value="{StaticResource queen_black}" />
                     </MultiDataTrigger.Setters>
                 </MultiDataTrigger>
+                <DataTrigger Binding="{Binding IsSelected}" Value="true">
+                    <Setter Property="Opacity" Value="0.5" />
+                </DataTrigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>
@@ -104,7 +116,7 @@
             <TextBlock Grid.Row="4" Text="Zbite pionki przeciwnika:" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
             <TextBlock Grid.Row="5" Text="Stracone pionki:" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
             <!--<TextBlock Grid.Row="6" Text="Kolor:" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>-->
-            <Button Grid.Row="7" Content="START" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" Width="70" Height="30" BorderBrush="Black" >
+            <Button Grid.Row="7" Content="START" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" Width="70" Height="30" BorderBrush="Black" Click="Button_Click" >
                 <Button.Effect>
                     <DropShadowEffect ShadowDepth="7" BlurRadius="10"/>
                 </Button.Effect>
@@ -161,8 +173,8 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Grid Width="1" Height="1">
-                            <Rectangle Width="0.8" Height="0.8" Style="{StaticResource CheckersPieceStyle}" />
+                        <Grid Width="1" Height="1" >
+                            <Rectangle Width="0.8" Height="0.8" Style="{StaticResource CheckersPieceStyle}" MouseDown="Rectangle_MouseDown"/>
                         </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
