@@ -24,16 +24,40 @@ namespace Checkers.Logic
             CurrentPlayer = player;
         }
 
-        public bool isValidMove(int from, int to)
+        public bool CanHit(int position)
+        {
+            int y = posToRow(position);
+            int player = CurrentPlayer == Player.Black ? 1 : -1;
+            int valueNear = y % 2 == 0 ? (player == 1 ? 3 : 4) : (player == 1 ? 4 : 3);
+            int valueFar = 7;
+
+            int posNearLeft = position + player*(valueNear);
+            int posNearRight = position + player * (valueNear + 1);
+
+            int posFarLeft = position + player * (valueFar);
+            int posFarRight = position + player * (valueFar + 2);
+
+            if (posFarLeft >= 0 && posFarLeft < Pieces.Count && Pieces[posNearLeft].Player == CurrentPlayer &&
+                Pieces[posNearRight].Player == CurrentPlayer)
+                return false;
+
+            if (Pieces[posFarLeft].Player != Player.None &&
+                Pieces[posFarRight].Player != Player.None)
+                return false;
+
+            return true;
+        }
+
+        public int isValidMove(int from, int to)
         {
             if (from < 0 || from > 32 || to < 0 || to > 32)
-                return false;
+                return -1;
 
             if (Pieces[from].Type == PieceType.Free || Pieces[to].Type != PieceType.Free)
-                return false;
+                return -1;
 
             if (Pieces[from].Player != CurrentPlayer)
-                return false;
+                return -1;
 
             Player color = Pieces[from].Player;
             Player enemy;
@@ -65,18 +89,20 @@ namespace Checkers.Logic
 
             if (Pieces[from].Type == PieceType.Pawn)
             {
-                bool goodDir;
+                int goodDir;
 
                 if ((incY == 1 && color == Player.White) || (incY == -1 && color == Player.Black))
-                    goodDir = true;
+                    goodDir = 0;
                 else
-                    goodDir = false;
+                    goodDir = -1;
 
                 if (x == toCol && y == toRow)
                     return goodDir;// && !mustAttack ();
 
                 // If it wasn't a simple move it can only be an attack move
-                return goodDir && x + incX == toCol && y + incY == toRow && Pieces[colRowToPos(x, y)].Player == enemy;
+                if (goodDir != -1 && x + incX == toCol && y + incY == toRow && Pieces[colRowToPos(x, y)].Player == enemy)
+                    return 1;
+                return -1;
             }
             else // queen
             {
@@ -88,7 +114,7 @@ namespace Checkers.Logic
 
                 // Simple move with a king piece
                 if (x == toCol && y == toRow)
-                    return false;// !mustAttack();
+                    return -1;// !mustAttack();
 
                 if (Pieces[colRowToPos(x, y)].Player == enemy)
                 {
@@ -102,11 +128,11 @@ namespace Checkers.Logic
                     }
 
                     if (x == toCol && y == toRow)
-                        return true;
+                        return 0;
                 }
             }
 
-            return false;
+            return -1;
         }
 
         private List<Move> LegalMoves()
@@ -122,17 +148,17 @@ namespace Checkers.Logic
             return generateMoves(color, enemy);
         }
 
-        private int posToCol(int value)
+        public int posToCol(int value)
         {
             return (value % 4) * 2 + ((value / 4) % 2 != 0 ? 1 : 0);
         }
 
-        private int posToRow(int value)
+        public int posToRow(int value)
         {
             return value / 4;
         }
 
-        private int colRowToPos(int col, int line)
+        public int colRowToPos(int col, int line)
         {
             if (isEven(line))
                 return line * 4 + (col + 1) / 2;
