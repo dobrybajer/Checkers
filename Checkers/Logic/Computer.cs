@@ -65,6 +65,7 @@ namespace Checkers.Logic
                         board[i] = 0;
                         break;
                 }
+                ++i;
             }
 
             return board;
@@ -141,27 +142,34 @@ namespace Checkers.Logic
             int[] nextBoard;
             int value, maxValue = Int32.MinValue;
 
-            int i = 0;
-            sucessors = logic.LegalMoves();
-            while (mayPlay(sucessors))
+
+            sucessors = LegalMoves(Board);
+            try
             {
-                move = sucessors[i];
-                sucessors.RemoveAt(i);
-
-                nextBoard = (int[])Board.Clone();
-
-                Debug.WriteLine("******************************************************************");
-                Move(ref nextBoard, move);
-                value = minMove(nextBoard, 1, maxValue, Int32.MaxValue);
-
-                if (value > maxValue)
+                while (mayPlay(sucessors))
                 {
-                    Debug.WriteLine("Max value : " + value + " at depth : 0");
-                    maxValue = value;
-                    bestMove = move;
-                }
+                    move = sucessors[0];
+                    sucessors.RemoveAt(0);
 
-                ++i;
+                    nextBoard = (int[])Board.Clone();
+
+                    Debug.WriteLine("******************************************************************");
+                    Move(ref nextBoard, move);
+                    value = minMove(nextBoard, 1, maxValue, Int32.MaxValue);
+
+                    if (value > maxValue)
+                    {
+                        Debug.WriteLine("Max value : " + value + " at depth : 0");
+                        maxValue = value;
+                        bestMove = move;
+                    }
+
+          
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("error in minmax: " + e.Message);
             }
 
             Debug.WriteLine("Move value selected : " + maxValue + " at depth : 0");
@@ -203,13 +211,13 @@ namespace Checkers.Logic
             Debug.WriteLine("Max node at depth : " + depth + " with alpha : " + alpha +
                                 " beta : " + beta);
 
-            sucessors = legalMoves(board);
-            int i = 0;
+            sucessors = LegalMoves(board);
+        
             while (mayPlay(sucessors))
             {
-                move = sucessors[i];
-                sucessors.RemoveAt(i);
-                ++i;
+                move = sucessors[0];
+                sucessors.RemoveAt(0);
+      
                 nextBoard = (int[])board.Clone();
                 Move(ref nextBoard, move);
                 value = minMove(nextBoard, depth + 1, alpha, beta);
@@ -389,11 +397,11 @@ namespace Checkers.Logic
                                 " beta : " + beta);
 
             sucessors = LegalMoves(board);
-            int i=0;
+          
             while (mayPlay(sucessors))
             {
-                move = sucessors[i];
-                sucessors.RemoveAt(i);
+                move = sucessors[0];
+                sucessors.RemoveAt(0);
                 nextBoard = (int[])board.Clone();
                 Move(ref nextBoard, move);
                 value = maxMove(nextBoard, depth + 1, alpha, beta);
@@ -410,7 +418,7 @@ namespace Checkers.Logic
                     //Debug.WriteLine(sucessors.length() + " sucessors left");
                     return alpha;
                 }
-                i++;
+           
             }
 
             Debug.WriteLine("Min value selected : " + beta + " at depth : " + depth);

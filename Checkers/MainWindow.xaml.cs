@@ -1,4 +1,5 @@
-﻿using Checkers.Logic;
+﻿using System;
+using Checkers.Logic;
 using Checkers.Model;
 using System.Collections.ObjectModel;
 using System.Windows;
@@ -17,6 +18,7 @@ namespace Checkers
         private Info Selected = new Info() { IsSelected = false };
         private Player CurrentPlayer;
         private readonly CheckerMove Logic;
+        private Computer ai;
 
         public MainWindow()
         {
@@ -25,6 +27,7 @@ namespace Checkers
             CreateBoard();
             CurrentPlayer = Player.White;
             Logic = new CheckerMove(Pieces, CurrentPlayer);
+            ai =  new Computer(Pieces, Player.Black);
         }
 
         private void CreateBoard()
@@ -150,6 +153,7 @@ namespace Checkers
                 }
                 else
                 {
+                   
                     if (item != null && item.Player == CurrentPlayer)
                     {
                         if (Selected.index == index)
@@ -165,12 +169,16 @@ namespace Checkers
                     else
                     {
                         Move(item, index);
+                        Move move = ai.play();
+                        MessageBox.Show("from " + move.getFrom() + " to " + move.getTo());
+                        CurrentPlayer = Player.White;
+
                     }
                 }
             }
-            catch
+            catch(Exception en)
             {
-                MessageBox.Show("error");
+                MessageBox.Show("error: " + en.Message);//nasz wyjatek
             }
         }
     }
