@@ -47,16 +47,27 @@ namespace Checkers.Logic
             logic = new CheckerMove(Pieces, CurrentPlayer);
         }
 
-        byte[,] Convert()
+        int[] ConvertToIntArray()
         {
-            var board = new byte[8,8];
-            for (int i = 0; i < 8; ++i)
+            var board = new int[Pieces.Count];
+            int i = 0;
+            foreach (var e in Pieces)
             {
-                for (int j = 0; j < 8; j++)
+                switch (e.Player)
                 {
-                    
-                }    
+                    case Player.Black:
+                        board[i] = -1;
+                        break;
+                    case Player.White:
+                        board[i] = 1;
+                        break;
+                    default:
+                        board[i] = 0;
+                        break;
+                }
             }
+
+            return board;
         }
 
         /// <sumary> 
@@ -75,73 +86,25 @@ namespace Checkers.Logic
             }
         }
 
-        private void MakeQueen(int index)
+      
+
+        private void Move(ref int[] board, Move move)
         {
-            int BoardSize = 8;
-            if (CurrentPlayer == Player.White && Pieces[index].Pos.Y == BoardSize - 1 ||
-               CurrentPlayer == Player.Black && Pieces[index].Pos.Y == 0)
-                Pieces[index].Type = PieceType.Queen;
-        }
+            int from = move.getFrom();
+            int to = move.getTo();
 
-        private void ChangeStates(int index1, int index2)
-        {
-            CheckersPiece selected = new CheckersPiece() {Player = Pieces[index1].Player, Type = Pieces[index1].Type};
-            CheckersPiece item2 = new CheckersPiece() {Player = Pieces[index2].Player, Type = Pieces[index2].Type};
+            board[from] = 0;
+            board[to] = -1;
 
-            Pieces[index1].Player = item2.Player;
-            Pieces[index1].Type = item2.Type;
-            Pieces[index2].Player = selected.Player;
-            Pieces[index2].Type = selected.Type;
-        }
-
-        private void ChangePlayer()
-        {
-            CurrentPlayer = CurrentPlayer == Player.Black ? Player.White : Player.Black;
-            logic.SetCurrentPlayer(CurrentPlayer);
-        }
-
-        private void RemoveDensePawn(int index1, int index2)
-        {
-            CheckersPiece selected = new CheckersPiece() { Player = Pieces[index1].Player, Type = Pieces[index1].Type };
-
-            int indexCol = logic.posToCol(index2);
-            int player = CurrentPlayer == Player.Black ? -1 : 1;
-            int value = selected.Pos.Y % 2 == 0 ? (player == 1 ? 3 : 4) : (player == 1 ? 4 : 3);
-            int indexx = indexCol < selected.Pos.X ? (player == 1 ? 0 : 1) : (player == 1 ? 1 : 0);
-
-            Pieces[index1 + player * (value + indexx)].Type = PieceType.Free;
-            Pieces[index1 + player * (value + indexx)].Player = Player.None;
-        }
-
-        private void Move(int from, int to)
-        {
-            ChangeStates(from, to);
-
-            if (Math.Abs(from - to) > 4)
-                RemoveDensePawn(from, to);
-
-            ChangePlayer();
-          
-            MakeQueen(to);   
         }
 
         /// <sumary> 
         ///   Makes the computer play a move in the checkers
         ///  board that it holds.
         /// </sumary>
-        public void play()
+        public Move play()
         {
-            try
-            {
-                Move move = minimax();
-
-                if (move != null)
-                    Move(move.getFrom(), move.getTo());
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show("error: " + e.Message);
-            }
+            return minimax();
         }
 
         /// <sumary> 
@@ -174,18 +137,21 @@ namespace Checkers.Logic
         {
             List<Move> sucessors;
             Move move, bestMove = null;
-            CheckersPiece[] nextBoard;
+            int[] Board = ConvertToIntArray();
+            int[] nextBoard;
             int value, maxValue = Int32.MinValue;
 
+            int i = 0;
             sucessors = logic.LegalMoves();
             while (mayPlay(sucessors))
             {
-                move = sucessors[0];
-                var tmp = Pieces.ToArray();
-                nextBoard = (CheckersPiece[])tmp.Clone();
+                move = sucessors[i];
+                sucessors.RemoveAt(i);
+
+                nextBoard = (int[])Board.Clone();
 
                 Debug.WriteLine("******************************************************************");
-                nextBoard.move(move);
+                Move(ref nextBoard, move);
                 value = minMove(nextBoard, 1, maxValue, Int32.MaxValue);
 
                 if (value > maxValue)
@@ -194,6 +160,8 @@ namespace Checkers.Logic
                     maxValue = value;
                     bestMove = move;
                 }
+
+                ++i;
             }
 
             Debug.WriteLine("Move value selected : " + maxValue + " at depth : 0");
@@ -221,26 +189,29 @@ namespace Checkers.Logic
         /// <value>
         ///  Move evaluation value
         /// </value>
-        private int maxMove(ObservableCollection<CheckersPiece> board, int depth, int alpha, int beta)
+        private int maxMove(int[] board, int depth, int alpha, int beta)
         {
             if (cutOffTest(board, depth))
                 return eval(board);
 
 
-            List sucessors;
-            List move;
-            ObservableCollection<CheckersPiece> nextBoard;
+            List<Move> sucessors;
+            Move move;
+            int[] nextBoard;
             int value;
 
             Debug.WriteLine("Max node at depth : " + depth + " with alpha : " + alpha +
                                 " beta : " + beta);
 
-            sucessors = board.legalMoves();
+            sucessors = legalMoves(board);
+            int i = 0;
             while (mayPlay(sucessors))
             {
-                move = (List)sucessors.pop_front();
-                nextBoard = (ObservableCollection<CheckersPiece>)board.clone();
-                nextBoard.move(move);
+                move = sucessors[i];
+                sucessors.RemoveAt(i);
+                ++i;
+                nextBoard = (int[])board.Clone();
+                Move(ref nextBoard, move);
                 value = minMove(nextBoard, depth + 1, alpha, beta);
 
                 if (value > alpha)
@@ -252,7 +223,7 @@ namespace Checkers.Logic
                 if (alpha > beta)
                 {
                     Debug.WriteLine("Max value with prunning : " + beta + " at depth : " + depth);
-                    Debug.WriteLine(sucessors.length() + " sucessors left");
+                    Debug.WriteLine(sucessors.Count + " sucessors left");
                     return beta;
                 }
 
