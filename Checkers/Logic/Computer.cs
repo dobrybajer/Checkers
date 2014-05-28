@@ -262,6 +262,127 @@ namespace Checkers.Logic
             return alpha;
         }
 
+
+        public List<Move> LegalMoves(int[] board)
+        {
+            Player color, enemy;
+
+            color = CurrentPlayer;
+            if (color == Player.White)
+                enemy = Player.Black;
+            else
+                enemy = Player.Black;
+
+            return generateMoves(color, enemy, board);
+        }
+
+        public int posToCol(int value)
+        {
+            return (value % 4) * 2 + ((value / 4) % 2 != 0 ? 1 : 0);
+        }
+
+        public int posToRow(int value)
+        {
+            return value / 4;
+        }
+
+        private bool isEven(int value)
+        {
+            return value % 2 == 0;
+        }
+
+        public int colRowToPos(int col, int line)
+        {
+            if (isEven(line))
+                return line * 4 + (col + 1) / 2;
+            else
+                return line * 4 + col / 2;
+        }
+
+        private List<Move> generateMoves(Player color, Player enemy, int[] board)
+        {
+            List<Move> moves = new List<Move>();
+            var white = false;
+            if (CurrentPlayer == Player.White)
+                white = true;
+
+            for (int k = 0; k < Pieces.Count; k++)
+                if (white ? board[k] >0: board[k] <0)
+                {
+                    int x = posToCol(k);
+                    int y = posToRow(k);
+                    int i, j;
+
+                    if (board[k] == 1)
+                    {  // Simple piece
+                        i = (white) ? -1 : 1;
+                        // See the diagonals /^ e \v
+                        if (x < 7 && y + i >= 0 && y + i <= 7 && (white ? board[colRowToPos(x + 1, y + i)] == 1: board[colRowToPos(x + 1, y + i)] == -1))
+                        {
+                            moves.Add(new Move(k, colRowToPos(x + 1, y + i)));
+
+                        }
+
+                        // See the diagonals ^\ e v/
+                        if (x > 0 && y + i >= 0 && y + i <= 7 &&
+                            board[colRowToPos(x - 1, y + i)] == 0)
+                        {
+                            moves.Add(new Move(k, colRowToPos(x - 1, y + i)));
+                        };
+                    }
+                    else
+                    { // It's a king piece
+                        // See the diagonal \v
+                        i = x + 1;
+                        j = y + 1;
+
+                        while (i <= 7 && j <= 7 && board[colRowToPos(i, j)] == 0)
+                        {
+                            moves.Add(new Move(k, colRowToPos(i, j)));
+
+                            i++;
+                            j++;
+                        }
+
+
+                        // See the diagonals ^\
+                        i = x - 1;
+                        j = y - 1;
+                        while (i >= 0 && j >= 0 && board[colRowToPos(i, j)] == 0)
+                        {
+                            moves.Add(new Move(k, colRowToPos(i, j)));
+
+                            i--;
+                            j--;
+                        }
+
+                        // See the diagonals /^
+                        i = x + 1;
+                        j = y - 1;
+                        while (i <= 7 && j >= 0 && board[colRowToPos(i, j)] == 0)
+                        {
+                            moves.Add(new Move(k, colRowToPos(i, j)));
+
+                            i++;
+                            j--;
+                        }
+
+                        // See the diagonals v/
+                        i = x - 1;
+                        j = y + 1;
+                        while (i >= 0 && j <= 7 && board[colRowToPos(i, j)] == 0)
+                        {
+                            moves.Add(new Move(k, colRowToPos(i, j)));
+
+                            i--;
+                            j++;
+                        }
+                    }
+                }
+
+            return moves;
+        }
+
         /// <sumary> 
         ///   Implements game move evaluation from the point of view of the
         ///  MIN player.
@@ -282,40 +403,43 @@ namespace Checkers.Logic
         /// <value>
         ///  Move evaluation value
         /// </value>
-        private int minMove(ObservableCollection<CheckersPiece> board, int depth, int alpha, int beta)
+        private int minMove(int[] board, int depth, int alpha, int beta)
         {
             if (cutOffTest(board, depth))
                 return eval(board);
 
 
-            List sucessors;
-            List move;
-            ObservableCollection<CheckersPiece> nextBoard;
+            List<Move> sucessors;
+            Move move;
+            int[] nextBoard;
             int value;
 
             Debug.WriteLine("Min node at depth : " + depth + " with alpha : " + alpha +
                                 " beta : " + beta);
 
-            sucessors = (List)board.legalMoves();
+            sucessors = LegalMoves(board);
+            int i=0;
             while (mayPlay(sucessors))
             {
-                move = (List)sucessors.pop_front();
-                nextBoard = (ObservableCollection<CheckersPiece>)board.clone();
-                nextBoard.move(move);
+                move = sucessors[i];
+                sucessors.RemoveAt(i);
+                nextBoard = (int[])board.Clone();
+                Move(ref nextBoard, move);
                 value = maxMove(nextBoard, depth + 1, alpha, beta);
 
                 if (value < beta)
                 {
                     beta = value;
-                    Debug.WriteLine("Min value : " + value + " at depth : " + depth);
+                    //Debug.WriteLine("Min value : " + value + " at depth : " + depth);
                 }
 
                 if (beta < alpha)
                 {
-                    Debug.WriteLine("Min value with prunning : " + alpha + " at depth : " + depth);
-                    Debug.WriteLine(sucessors.length() + " sucessors left");
+                    //Debug.WriteLine("Min value with prunning : " + alpha + " at depth : " + depth);
+                    //Debug.WriteLine(sucessors.length() + " sucessors left");
                     return alpha;
                 }
+                i++;
             }
 
             Debug.WriteLine("Min value selected : " + beta + " at depth : " + depth);
@@ -331,35 +455,35 @@ namespace Checkers.Logic
         /// <value>
         ///  Player strength
         /// </value>
-        private int eval(ObservableCollection<CheckersPiece> board)
+        private int eval(int[] board)
         {
             int colorKing;
             int colorForce = 0;
             int enemyForce = 0;
             int piece;
 
-            if (color == ObservableCollection<CheckersPiece>.WHITE)
-                colorKing = ObservableCollection<CheckersPiece>.WHITE_KING;
+            if (color == 1)
+                colorKing = 2;//Withe king
             else
-                colorKing = ObservableCollection<CheckersPiece>.BLACK_KING;
+                colorKing = -2;
 
             try
             {
                 for (int i = 0; i < 32; i++)
                 {
-                    piece = board.getPiece(i);
+                    piece = board[i];
 
-                    if (piece != ObservableCollection<CheckersPiece>.EMPTY)
+                    if (piece != 0)
                         if (piece == color || piece == colorKing)
                             colorForce += calculateValue(piece, i);
                         else
                             enemyForce += calculateValue(piece, i);
                 }
             }
-            catch (BadCoord bad)
+            catch (Exception e)
             {
-                Debug.WriteLine(bad.StackTrace);
-                Application.Exit();
+                //Debug.WriteLine(bad.StackTrace);
+                //Application.Exit();
             }
 
             return colorForce - enemyForce;
@@ -381,12 +505,12 @@ namespace Checkers.Logic
         {
             int value;
 
-            if (piece == ObservableCollection<CheckersPiece>.WHITE) //Simple piece
+            if (piece == 1) //Simple piece
                 if (pos >= 4 && pos <= 7)
                     value = 7;
                 else
                     value = 5;
-            else if (piece != ObservableCollection<CheckersPiece>.BLACK) //Simple piece
+            else if (piece != -1) //Simple piece
                 if (pos >= 24 && pos <= 27)
                     value = 7;
                 else
@@ -410,9 +534,9 @@ namespace Checkers.Logic
         /// <value>
         ///  true if the tree can be prunned.
         /// </value>
-        private bool cutOffTest(ObservableCollection<CheckersPiece> board, int depth)
+        private bool cutOffTest(int[] board, int depth)
         {
-            return depth > maxDepth || board.hasEnded();
+            return depth > maxDepth || board.Length == 0;
         }
     }
 }
