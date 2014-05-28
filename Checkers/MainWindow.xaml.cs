@@ -53,8 +53,8 @@ namespace Checkers
 
         private void MakeQueen(int index)
         {
-            if (CurrentPlayer == Player.White && Pieces[index].Pos.Y == 0 ||
-               CurrentPlayer == Player.Black && Pieces[index].Pos.Y == BoardSize - 1)
+            if (CurrentPlayer == Player.White && Pieces[index].Pos.Y == BoardSize - 1 ||
+               CurrentPlayer == Player.Black && Pieces[index].Pos.Y == 0)
                 Pieces[index].Type = PieceType.Queen;
         }
 
@@ -64,6 +64,7 @@ namespace Checkers
             Pieces[selected.index].Type = item2.Type;
             Pieces[index2].Player = selected.Player;
             Pieces[index2].Type = selected.Type;
+            //item2.IsSelected = false;
         }
 
         private void ChangePlayer()
@@ -75,12 +76,61 @@ namespace Checkers
         private void RemoveDensePawn(Info selected, int index)
         {
             int indexCol = Logic.posToCol(index);
-            int player = CurrentPlayer == Player.Black ? 1 : -1;
+            int player = CurrentPlayer == Player.Black ? -1 : 1;
             int value = selected.Pos.Y % 2 == 0 ? (player == 1 ? 3 : 4) : (player == 1 ? 4 : 3);
             int indexx = indexCol < selected.Pos.X ? (player == 1 ? 0 : 1) : (player == 1 ? 1 : 0);
             
             Pieces[selected.index + player * (value + indexx)].Type = PieceType.Free;
             Pieces[selected.index + player * (value + indexx)].Player = Player.None; 
+        }
+
+        private void Move(CheckersPiece item, int index)
+        {
+            bool changed = false;
+
+            bool good = false;
+
+            int from = Selected.index;
+
+            int valid = Logic.IsValidMove(from, index);
+
+            if (valid != -1)
+            {
+                ChangeStates(Selected, item, index);
+
+                if (valid == 1)
+                {
+                    RemoveDensePawn(Selected, index);
+
+                    if (Logic.CanHit(index))
+                    {
+                        item.IsSelected = true;
+                        Selected.ChangeFields(item.Type, item.Player, item.Pos, index, true);
+                    }
+                    else
+                    {
+                        changed = true;
+                        ChangePlayer();
+                        Selected.SetSelected();
+                        item.IsSelected = false;
+                    }
+                }
+
+                if (!changed)
+                {
+                    ChangePlayer();
+                    Selected.SetSelected();
+                    item.IsSelected = false;
+                }
+
+                MakeQueen(index);
+                good = true;
+            }
+
+            if (!good)
+            {
+                MessageBox.Show("Invalid Move", "Error");
+            }
         }
 
         private void Rectangle_MouseDown(object sender, MouseButtonEventArgs e)
@@ -89,6 +139,8 @@ namespace Checkers
             {
                 var item = ((FrameworkElement)sender).DataContext as CheckersPiece;
                 var index = Pieces.IndexOf(item);
+                
+
 
                 if (!Selected.GetSelected())
                 {
@@ -112,34 +164,7 @@ namespace Checkers
                     }
                     else
                     {
-                        bool good = false;
-
-                        int from = Selected.index;
-
-                        int valid = Logic.isValidMove(from, index);
-
-                        if (valid != -1)
-                        {
-                            ChangeStates(Selected, item, index);
-
-                            if (valid == 1)
-                                RemoveDensePawn(Selected, index);
-
-                            MakeQueen(index);
-                            good = true;
-
-                            if (!Logic.CanHit(index))
-                            {
-                                Selected.SetSelected();
-                                item.IsSelected = false;
-                                ChangePlayer();
-                            }
-                        }
-                       
-                        if (!good)
-                        {
-                            MessageBox.Show("Invalid Move", "Error");
-                        }
+                        Move(item, index);
                     }
                 }
             }

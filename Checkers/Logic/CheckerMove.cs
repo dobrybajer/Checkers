@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Checkers.Model;
@@ -26,29 +27,33 @@ namespace Checkers.Logic
 
         public bool CanHit(int position)
         {
+            //int y = posToRow(position);
+            var player = CurrentPlayer == Player.Black ? 1 : -1;
+            var enemy = CurrentPlayer == Player.White ? Player.Black : Player.White;
+
+            int x = posToCol(position);
             int y = posToRow(position);
-            int player = CurrentPlayer == Player.Black ? 1 : -1;
-            int valueNear = y % 2 == 0 ? (player == 1 ? 3 : 4) : (player == 1 ? 4 : 3);
-            int valueFar = 7;
 
-            int posNearLeft = position + player*(valueNear);
-            int posNearRight = position + player * (valueNear + 1);
+            int yN = y + player;
+            int xNL = x - 1;
+            int xNR = x + 1;
+            int yF = y + 2*player;
+            int xFL = x - 2;
+            int xFR = x + 2;
 
-            int posFarLeft = position + player * (valueFar);
-            int posFarRight = position + player * (valueFar + 2);
 
-            if (posFarLeft >= 0 && posFarLeft < Pieces.Count && Pieces[posNearLeft].Player == CurrentPlayer &&
-                Pieces[posNearRight].Player == CurrentPlayer)
-                return false;
-
-            if (Pieces[posFarLeft].Player != Player.None &&
-                Pieces[posFarRight].Player != Player.None)
-                return false;
-
-            return true;
+            return IsInBoard(xNL, yN) && Pieces[colRowToPos(xNL, yN)].Player == enemy &&
+                   IsInBoard(xFL, yF) && Pieces[colRowToPos(xFL, yF)].Player == Player.None ||
+                   IsInBoard(xNR, yN) && Pieces[colRowToPos(xNR, yN)].Player == enemy &&
+                   IsInBoard(xFR, yF) && Pieces[colRowToPos(xFR, yF)].Player == Player.None;
         }
 
-        public int isValidMove(int from, int to)
+        private bool IsInBoard(int x, int y)
+        {
+            return x >= 0 && x < 8 && y >= 0 && y < 8;
+        }
+
+        public int IsValidMove(int from, int to)
         {
             if (from < 0 || from > 32 || to < 0 || to > 32)
                 return -1;
@@ -135,7 +140,7 @@ namespace Checkers.Logic
             return -1;
         }
 
-        private List<Move> LegalMoves()
+        public List<Move> LegalMoves()
         {
             Player color, enemy;
 

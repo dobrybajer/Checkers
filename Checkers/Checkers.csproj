@@ -67,6 +67,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Logic\CheckerMove.cs" />
+    <Compile Include="Logic\Computer.cs" />
     <Compile Include="Model\Enums.cs" />
     <Compile Include="Model\Info.cs" />
     <Compile Include="Model\Move.cs" />
