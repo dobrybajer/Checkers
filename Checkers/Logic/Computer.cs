@@ -459,15 +459,19 @@ namespace Checkers.Logic
                     if (piece != 0)
                         if (white ? piece == 1 : piece == -1 || piece == colorKing)
                         {
+                            //zbieramy wyniki dal wszystkich funkcji oceniajacych
                             //colorForce += calculateValue(piece, i);//funkcja oceniajace z bazowego algo
                             colorForce += calculateValueLevel(piece, i, white);//Czwarta funkcja oceniajaca
                             colorForce += calculateValueEdge(piece, i, white);//trzecia funkcja oceniajaca
+                            colorForce += CalculateValuePiece(piece, i, white);
                         }
                         else
                         {
                             //enemyForce += calculateValue(piece, i);funkcja oceniajace z bazowego algo
-                            enemyForce += calculateValueLevel(piece, i, white);
-                            enemyForce += calculateValueEdge(piece, i, white);
+                            var tmp = !white;
+                            enemyForce += calculateValueLevel(piece, i, tmp);
+                            enemyForce += calculateValueEdge(piece, i, tmp);
+                            enemyForce += CalculateValuePiece(piece, i, tmp);
                         }
                 }
             }
@@ -511,7 +515,7 @@ namespace Checkers.Logic
 
             return value ;
         }
-
+        //Funkcja licząca wartosci dla funkcji krawędziowej
         private int calculateValueEdge(int piece, int pos, bool white)
         {
             int value = 0;
@@ -524,6 +528,28 @@ namespace Checkers.Logic
                 value = 3;
             else
                 value = 4;//obszar 3
+
+            return value;
+        }
+        // FUnkcja liczaca wartosci dla funkcji rodzaj i ilosc pionkow
+        private int CalculateValuePiece(int piece, int pos, bool white)
+        {
+            int value = 0;
+
+            if (white)
+            {
+                if (piece == 1)
+                    value = 1;
+                else if (piece == 2)
+                    value = 5;
+            }
+            else
+            {
+                if (piece == -1)
+                    value = 1;
+                else if (piece == -2)
+                    value = 5;
+            }
 
             return value;
         }
