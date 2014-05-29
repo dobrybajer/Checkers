@@ -241,7 +241,6 @@ namespace Checkers.Logic
             return alpha;
         }
 
-
         public List<Move> LegalMoves(int[] board)
         {
             Player color, enemy;
@@ -441,8 +440,13 @@ namespace Checkers.Logic
             int enemyForce = 0;
             int piece;
 
-            if (color == 1)
+            bool white = false;
+
+            if (CurrentPlayer == Player.White)
+            {
                 colorKing = 2;//Withe king
+                white = true;
+            }
             else
                 colorKing = -2;
 
@@ -453,10 +457,18 @@ namespace Checkers.Logic
                     piece = board[i];
 
                     if (piece != 0)
-                        if (piece == color || piece == colorKing)
-                            colorForce += calculateValue(piece, i);
+                        if (white ? piece == 1 : piece == -1 || piece == colorKing)
+                        {
+                            //colorForce += calculateValue(piece, i);//funkcja oceniajace z bazowego algo
+                            colorForce += calculateValueLevel(piece, i, white);//Czwarta funkcja oceniajaca
+                            colorForce += calculateValueEdge(piece, i, white);//trzecia funkcja oceniajaca
+                        }
                         else
-                            enemyForce += calculateValue(piece, i);
+                        {
+                            //enemyForce += calculateValue(piece, i);funkcja oceniajace z bazowego algo
+                            enemyForce += calculateValueLevel(piece, i, white);
+                            enemyForce += calculateValueEdge(piece, i, white);
+                        }
                 }
             }
             catch (Exception e)
@@ -466,6 +478,54 @@ namespace Checkers.Logic
             }
 
             return colorForce - enemyForce;
+        }
+
+        //Funkcja licząca wartosci dla funkcji poziomu
+        private int calculateValueLevel(int piece, int pos, bool white)
+        {
+            int value=0;
+
+            if (white)//jesli komputer gra bialymi
+            {
+                if (pos >= 0 && pos <= 7)//pierwszy poziom
+                    value = 1;
+                else if (pos >= 8 && pos <= 15)//2 poziom
+                    value = 2;
+                else if (pos >= 16 && pos <= 23)//3 poziom
+                    value = 3;
+                else if (pos >= 24 && pos <= 31)//4 poziom
+                    value = 4;
+            }
+            else// komputer gra czarnymi
+            {
+                if (pos >= 24 && pos <= 32)//1 poziom
+                    value = 1;
+                else if (pos >= 16 && pos <= 23)//2 poziom
+                    value = 2;
+                else if (pos >= 8 && pos <= 15)//3 poziom
+                    value = 3;
+                else if (pos >= 0 && pos <= 7)//4 poziom
+                    value = 4;
+
+            }
+
+            return value ;
+        }
+
+        private int calculateValueEdge(int piece, int pos, bool white)
+        {
+            int value = 0;
+
+            if ((pos >= 0 && pos <= 3) || pos == 7 || pos == 8 || pos == 15 || 
+                pos == 16 || pos == 23 || pos == 24 || (pos >= 28 && pos <= 31)) // obszar 1
+                value = 2;
+            else if ((pos >= 4 && pos <= 6) || pos == 11 || pos == 12 || 
+                pos == 19 || pos == 20 || (pos >= 25 && pos <= 27)) // obszar 2
+                value = 3;
+            else
+                value = 4;//obszar 3
+
+            return value;
         }
 
         /// <sumary> 
