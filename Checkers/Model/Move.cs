@@ -1,36 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Checkers.Model
 {
     public class Move
     {
-        private int from;
+        private readonly int _from;
 
-        private int to;
+        private readonly int _to;
+
+        public List<int> ToRemove { get; set; }
 
         public Move(int moveFrom, int moveTo)
         {
-            from = moveFrom;
-            to = moveTo;
+            _from = moveFrom;
+            _to = moveTo;
+            ToRemove = new List<int>();
         }
 
-        public int getFrom()
+        public int GetFrom()
         {
-            return from;
+            return _from;
         }
 
-        public int getTo()
+        public int GetTo()
         {
-            return to;
+            return _to;
         }
 
         public override string ToString()
         {
-            return "(" + from + "," + to + ")";
+            return "(" + _from + "," + _to + ")";
         }
     }
 }

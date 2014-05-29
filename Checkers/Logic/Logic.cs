@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using Checkers.Model;
 using Checkers.ViewModel;
+using System.Windows;
 
 namespace Checkers.Logic
 {
@@ -10,7 +11,8 @@ namespace Checkers.Logic
         private const int BoardSize = 8;
 
         private readonly ObservableCollection<CheckersPiece> _pieces;
-        private Player _currentPlayer;
+        public Player CurrentPlayer;
+        public Info Selected = new Info(false);
 
         #region Konstruktor
         /// <summary>
@@ -21,7 +23,7 @@ namespace Checkers.Logic
         public Logic(ObservableCollection<CheckersPiece> pieces, Player player)
         {
             _pieces = pieces;
-            _currentPlayer = player;
+            CurrentPlayer = player;
         }
         #endregion
 
@@ -31,7 +33,7 @@ namespace Checkers.Logic
         /// </summary>
         public void ChangePlayer()
         {
-            _currentPlayer = _currentPlayer == Player.Black ? Player.White : Player.Black;
+            CurrentPlayer = CurrentPlayer == Player.Black ? Player.White : Player.Black;
         }
         #endregion
 
@@ -50,10 +52,10 @@ namespace Checkers.Logic
 
         // TODO: sprawdźić czy działa, dodać atakowanie w tył
         #region CanHit - poprawić/dokończyć
-        public bool CanHit(int position)
+        private bool CanHit(int position)
         {
-            var player = _currentPlayer == Player.White ? 1 : -1;
-            var enemy = _currentPlayer == Player.White ? Player.Black : Player.White;
+            var player = CurrentPlayer == Player.White ? 1 : -1;
+            var enemy = CurrentPlayer == Player.White ? Player.Black : Player.White;
 
             var x = PosToCol(position);
             var y = PosToRow(position);
@@ -74,7 +76,7 @@ namespace Checkers.Logic
 
         // TODO: zrobić ruchy dla królowej, dodać konieczność atakowania
         #region IsValidMove - poprawić/dokończyć
-        public int IsValidMove(int from, int to)
+        private int IsValidMove(int from, int to)
         {
             if (from < 0 || from > _pieces.Count - 1 || to < 0 || to > _pieces.Count - 1)
                 return -1;
@@ -82,7 +84,7 @@ namespace Checkers.Logic
             if (_pieces[from].Type == PieceType.Free || _pieces[to].Type != PieceType.Free)
                 return -1;
 
-            if (_pieces[from].Player != _currentPlayer)
+            if (_pieces[from].Player != CurrentPlayer)
                 return -1;
 
             var color = _pieces[from].Player;
@@ -160,7 +162,7 @@ namespace Checkers.Logic
         /// </summary>
         /// <param name="value">Indeks listy.</param>
         /// <returns>Wartość x na planszy.</returns>
-        public int PosToCol(int value)
+        private static int PosToCol(int value)
         {
             return (value % 4) * 2 + ((value / 4) % 2 != 0 ? 1 : 0);
         }
@@ -170,7 +172,7 @@ namespace Checkers.Logic
         /// </summary>
         /// <param name="value">Indeks listy.</param>
         /// <returns>Wartość y na planszy.</returns>
-        public int PosToRow(int value)
+        private static int PosToRow(int value)
         {
             return value / 4;
         }
@@ -314,5 +316,99 @@ namespace Checkers.Logic
             return moves;
         }
         #endregion
+
+        private void MakeQueen(int index)
+        {
+            if (CurrentPlayer == Player.White && _pieces[index].Pos.Y == BoardSize - 1 ||
+               CurrentPlayer == Player.Black && _pieces[index].Pos.Y == 0)
+                _pieces[index].Type = PieceType.Queen;
+        }
+
+        private void ChangeStates(Info selected, CheckersPiece item2, int index2)
+        {
+            _pieces[selected.Index].Player = item2.Player;
+            _pieces[selected.Index].Type = item2.Type;
+            _pieces[index2].Player = selected.Player;
+            _pieces[index2].Type = selected.Type;
+        }
+
+        private void RemoveDensePawn(Info selected, CheckersPiece item)
+        {
+            var indexCol = item.Pos.Y;
+            var player = CurrentPlayer == Player.Black ? -1 : 1;
+            var value = IsEven((int)selected.Pos.Y) ? (player == 1 ? 3 : 4) : (player == 1 ? 4 : 3);
+            var indexx = indexCol < selected.Pos.X ? (player == 1 ? 0 : 1) : (player == 1 ? 1 : 0);
+
+            RemovePawn(selected.Index + player * (value + indexx));
+        }
+
+        private void RemovePawn(int index)
+        {
+            _pieces[index].Type = PieceType.Free;
+            _pieces[index].Player = Player.None;
+        }
+
+        public bool MovePlayer(CheckersPiece item, int index)
+        {
+            var from = Selected.Index;
+
+            var valid = IsValidMove(from, index);
+
+            if (valid != -1)
+            {
+                ChangeStates(Selected, item, index);
+
+                if (valid == 1)
+                {
+                    RemoveDensePawn(Selected, item);
+
+                    if (CanHit(index))
+                    {
+                        item.IsSelected = true;
+                        Selected.ChangeFields(item.Player, item.Type, item.Pos, index, true);
+
+                        MakeQueen(index);
+                        ChangePlayer();
+
+                        return false;
+                    }
+                }
+
+                Selected.ChangeSelected();
+                item.IsSelected = false;
+
+                MakeQueen(index);
+                ChangePlayer();
+
+                return true;
+            }
+
+            MessageBox.Show("Invalid Move", "Error");
+            return false;
+        }
+
+        public void MoveEnemy(Move move)
+        {
+            var info = new Info();
+            info.ChangeFields(Player.Black, PieceType.Pawn,
+                new Point(PosToCol(move.GetFrom()), PosToRow(move.GetFrom())), move.GetFrom(), false);
+
+            var item = new CheckersPiece
+            {
+                Player = Player.None,
+                Type = PieceType.Free,
+                Pos = new Point(PosToCol(move.GetTo()), PosToRow(move.GetTo()))
+            };
+
+            _pieces[move.GetFrom()].IsSelected = false;
+            _pieces[move.GetTo()].IsSelected = false;
+
+            foreach (var e in move.ToRemove)
+            {
+                RemovePawn(e);
+            }
+
+            ChangeStates(info, item, move.GetTo());
+        }
     }
 }
