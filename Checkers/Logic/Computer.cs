@@ -32,7 +32,9 @@ namespace Checkers.Logic
         {
             board[move.getFrom()] = 0;
             board[move.getTo()] = Color;
+            
         }
+        
 
         public Move Play()
         {
@@ -133,13 +135,104 @@ namespace Checkers.Logic
                 if (piece == 0) continue;
 
                 if (piece == Color || piece == colorKing)
-                    colorForce += CalculateValue(piece, i);
+                {
+                    //zbieramy wyniki dal wszystkich funkcji oceniajacych
+                    //colorForce += calculateValue(piece, i);//funkcja oceniajace z bazowego algo
+                    colorForce += calculateValueLevel(piece, i,false);//Czwarta funkcja oceniajaca
+                    colorForce += calculateValueEdge(piece, i,false);//trzecia funkcja oceniajaca
+                    colorForce += CalculateValuePiece(piece, i,false);
+                }
                 else
-                    enemyForce += CalculateValue(piece, i);
+                {
+                    //enemyForce += calculateValue(piece, i);funkcja oceniajace z bazowego algo
+                    enemyForce += calculateValueLevel(piece, i, true);
+                    enemyForce += calculateValueEdge(piece, i, true);
+                    enemyForce += CalculateValuePiece(piece, i, true);
+                }
             }
 
             return colorForce - enemyForce;
         }
+
+        //Funkcja licząca wartosci dla funkcji poziomu
+        private int calculateValueLevel(int piece, int pos,bool white)
+        {
+            int value = 0;
+            
+            if (white)//jesli komputer gra bialymi
+            {
+                if (pos >= 0 && pos <= 7)//pierwszy poziom
+                    value = 1;
+                else if (pos >= 8 && pos <= 15)//2 poziom
+                    value = 2;
+                else if (pos >= 16 && pos <= 23)//3 poziom
+                    value = 3;
+                else if (pos >= 24 && pos <= 31)//4 poziom
+                    value = 4;
+            }
+            else// komputer gra czarnymi
+            {
+                if (pos >= 24 && pos <= 32)//1 poziom
+                    value = 1;
+                else if (pos >= 16 && pos <= 23)//2 poziom
+                    value = 2;
+                else if (pos >= 8 && pos <= 15)//3 poziom
+                    value = 3;
+                else if (pos >= 0 && pos <= 7)//4 poziom
+                    value = 4;
+
+            }
+
+            return value;
+        }
+        //Funkcja licząca wartosci dla funkcji krawędziowej
+        private int calculateValueEdge(int piece, int pos, bool white)
+        {
+            int value = 0;
+
+            if ((pos >= 0 && pos <= 3) || pos == 7 || pos == 8 || pos == 15 ||
+                pos == 16 || pos == 23 || pos == 24 || (pos >= 28 && pos <= 31)) // obszar 1
+                value = 2;
+            else if ((pos >= 4 && pos <= 6) || pos == 11 || pos == 12 ||
+                pos == 19 || pos == 20 || (pos >= 25 && pos <= 27)) // obszar 2
+                value = 3;
+            else
+                value = 4;//obszar 3
+
+            return value;
+        }
+        // FUnkcja liczaca wartosci dla funkcji rodzaj i ilosc pionkow
+        private int CalculateValuePiece(int piece, int pos, bool white)
+        {
+            int value = 0;
+            
+            if (white)
+            {
+                if (piece == 1)
+                    value = 1;
+                else if (piece == 2)
+                    value = 5;
+            }
+            else
+            {
+                if (piece == -1)
+                    value = 1;
+                else if (piece == -2)
+                    value = 5;
+            }
+
+            return value;
+        }
+
+        private int calculateValueHit(int piece, int pos, bool white)
+        {
+            int value = 0;
+
+
+            return value;
+        }
+
+
 
         private int CalculateValue(int piece, int pos)
         {
