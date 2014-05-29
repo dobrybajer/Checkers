@@ -1,43 +1,38 @@
-﻿using GalaSoft.MvvmLight;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using Checkers.Model;
+using GalaSoft.MvvmLight;
 
-namespace Checkers
+namespace Checkers.ViewModel
 {
     public class CheckersPiece : ViewModelBase
     {
        
-        private Point _Pos;
+        private Point _pos;
         public Point Pos
         {
-            get { return this._Pos; }
-            set { this._Pos = value; RaisePropertyChanged(() => this.Pos); }
+            get { return _pos; }
+            set { _pos = value; RaisePropertyChanged(() => Pos); }
         }
 
-        private PieceType _Type;
+        private PieceType _type;
         public PieceType Type
         {
-            get { return this._Type; }
-            set { this._Type = value; RaisePropertyChanged(() => this.Type); }
+            get { return _type; }
+            set { _type = value; RaisePropertyChanged(() => Type); }
         }
 
-        private Player _Player;
+        private Player _player;
         public Player Player
         {
-            get { return this._Player; }
-            set { this._Player = value; RaisePropertyChanged(() => this.Player); }
+            get { return _player; }
+            set { _player = value; RaisePropertyChanged(() => Player); }
         }
 
         private bool _isSelected;
         public bool IsSelected
         {
-            get { return this._isSelected; }
-            set { this._isSelected = value; RaisePropertyChanged(() => this.IsSelected); }
+            get { return _isSelected; }
+            set { _isSelected = value; RaisePropertyChanged(() => IsSelected); }
         }
     }
 }

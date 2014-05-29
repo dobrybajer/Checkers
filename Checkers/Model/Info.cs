@@ -1,37 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 
 namespace Checkers.Model
 {
     struct Info
     {
-        public PieceType Type;
-        public Player Player;
-        public Point Pos;
-        public int index;
-        public bool IsSelected;
+        public Player Player { get; private set; }
+        public PieceType Type { get; private set; }
+        public Point Pos { get; private set; }
+        public int Index { get; private set; }
+        public bool IsSelected { get; private set; }
 
-        public void ChangeFields(PieceType t, Player p, Point po, int i, bool iS)
+        public Info(bool value) : this()
         {
-            Type = t;
-            Player = p;
-            Pos = po;
-            index = i;
-            IsSelected = iS;
+            IsSelected = value;
         }
 
-        public void SetSelected()
+        public void ChangeSelected()
         {
             IsSelected = !IsSelected;
         }
 
-        public bool GetSelected()
+        public void ChangeFields(Player p, PieceType t, Point pos, int i, bool iS)
         {
-            return IsSelected;
+            Player = p;
+            Type = t;
+            Pos = pos;
+            Index = i;
+            IsSelected = iS;
         }
     }
 }

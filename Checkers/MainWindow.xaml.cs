@@ -4,6 +4,8 @@ using Checkers.Model;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
+using Checkers.ViewModel;
+using GameLogic = Checkers.Logic.Logic;
 
 namespace Checkers
 {
@@ -12,109 +14,107 @@ namespace Checkers
     /// </summary>
     public partial class MainWindow
     {
-        private ObservableCollection<CheckersPiece> Pieces;
         private const int BoardSize = 8;
-        private bool IsStarted = false;
-        private Info Selected = new Info() { IsSelected = false };
-        private Player CurrentPlayer;
-        private readonly CheckerMove Logic;
-        private Computer ai;
+
+        private ObservableCollection<CheckersPiece> _pieces;
+        private Info _selected = new Info(false);
+
+        private Player _currentPlayer;
+        private readonly GameLogic _logic;
+        private readonly Computer _ai;
 
         public MainWindow()
         {
             InitializeComponent();
+
             DataContext = this;
+
             CreateBoard();
-            CurrentPlayer = Player.White;
-            Logic = new CheckerMove(Pieces, CurrentPlayer);
-            ai =  new Computer(Pieces, Player.Black);
+
+            _currentPlayer = Player.White;
+            _logic = new GameLogic(_pieces, _currentPlayer);
+            _ai =  new Computer(_logic);
         }
 
         private void CreateBoard()
         {
-            Pieces = new ObservableCollection<CheckersPiece>();
-            for (int i = 0; i < BoardSize; ++i)
+            _pieces = new ObservableCollection<CheckersPiece>();
+            for (var i = 0; i < BoardSize; ++i)
             {
-                for (int j = 0; j < BoardSize; ++j)
+                for (var j = 0; j < BoardSize; ++j)
                 {
                     if (i < 3 && (i % 2 == 0 && j % 2 == 0 || i % 2 == 1 && j % 2 == 1))
-                        Pieces.Add(new CheckersPiece { Pos = new Point(j, i), Type = PieceType.Pawn, Player = Player.White });
+                        _pieces.Add(new CheckersPiece { Pos = new Point(j, i), Type = PieceType.Pawn, Player = Player.White });
                     else if (i >= 5 && (i % 2 == 0 && j % 2 == 0 || i % 2 == 1 && j % 2 == 1))
-                        Pieces.Add(new CheckersPiece { Pos = new Point(j, i), Type = PieceType.Pawn, Player = Player.Black });
+                        _pieces.Add(new CheckersPiece { Pos = new Point(j, i), Type = PieceType.Pawn, Player = Player.Black });
                     else if (i == 3 && j % 2 == 1 || i == 4 && j % 2 == 0)
-                        Pieces.Add(new CheckersPiece { Pos = new Point(j, i), Type = PieceType.Free, Player = Player.None });
+                        _pieces.Add(new CheckersPiece { Pos = new Point(j, i), Type = PieceType.Free, Player = Player.None });
                 }
             }
 
-            CheckersBoard.ItemsSource = Pieces;
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            //IsEnabled = !IsEnabled;
+            CheckersBoard.ItemsSource = _pieces;
         }
 
         private void MakeQueen(int index)
         {
-            if (CurrentPlayer == Player.White && Pieces[index].Pos.Y == BoardSize - 1 ||
-               CurrentPlayer == Player.Black && Pieces[index].Pos.Y == 0)
-                Pieces[index].Type = PieceType.Queen;
+            if (_currentPlayer == Player.White && _pieces[index].Pos.Y == BoardSize - 1 ||
+               _currentPlayer == Player.Black && _pieces[index].Pos.Y == 0)
+                _pieces[index].Type = PieceType.Queen;
         }
 
         private void ChangeStates(Info selected, CheckersPiece item2, int index2)
         {
-            Pieces[selected.index].Player = item2.Player;
-            Pieces[selected.index].Type = item2.Type;
-            Pieces[index2].Player = selected.Player;
-            Pieces[index2].Type = selected.Type;
-            //item2.IsSelected = false;
+            _pieces[selected.Index].Player = item2.Player;
+            _pieces[selected.Index].Type = item2.Type;
+            _pieces[index2].Player = selected.Player;
+            _pieces[index2].Type = selected.Type;
         }
 
         private void ChangePlayer()
         {
-            CurrentPlayer = CurrentPlayer == Player.Black ? Player.White : Player.Black;
-            Logic.SetCurrentPlayer(CurrentPlayer);
+            _currentPlayer = _currentPlayer == Player.Black ? Player.White : Player.Black;
+            _logic.ChangePlayer();
         }
 
         private void RemoveDensePawn(Info selected, int index)
         {
-            int indexCol = Logic.posToCol(index);
-            int player = CurrentPlayer == Player.Black ? -1 : 1;
-            int value = selected.Pos.Y % 2 == 0 ? (player == 1 ? 3 : 4) : (player == 1 ? 4 : 3);
-            int indexx = indexCol < selected.Pos.X ? (player == 1 ? 0 : 1) : (player == 1 ? 1 : 0);
+            var indexCol = _logic.PosToCol(index);
+            var player = _currentPlayer == Player.Black ? -1 : 1;
+            var value = selected.Pos.Y % 2 == 0 ? (player == 1 ? 3 : 4) : (player == 1 ? 4 : 3);
+            var indexx = indexCol < selected.Pos.X ? (player == 1 ? 0 : 1) : (player == 1 ? 1 : 0);
             
-            Pieces[selected.index + player * (value + indexx)].Type = PieceType.Free;
-            Pieces[selected.index + player * (value + indexx)].Player = Player.None; 
+            _pieces[selected.Index + player * (value + indexx)].Type = PieceType.Free;
+            _pieces[selected.Index + player * (value + indexx)].Player = Player.None; 
         }
 
-        private void Move(CheckersPiece item, int index)
+        private bool Move(CheckersPiece item, int index)
         {
-            bool changed = false;
+            var changed = false;
 
-            bool good = false;
+            var good = false;
 
-            int from = Selected.index;
+            var from = _selected.Index;
 
-            int valid = Logic.IsValidMove(from, index);
+            var valid = _logic.IsValidMove(from, index);
 
             if (valid != -1)
             {
-                ChangeStates(Selected, item, index);
+                ChangeStates(_selected, item, index);
 
                 if (valid == 1)
                 {
-                    RemoveDensePawn(Selected, index);
+                    RemoveDensePawn(_selected, index);
 
-                    if (Logic.CanHit(index))
+                    if (_logic.CanHit(index))
                     {
                         item.IsSelected = true;
-                        Selected.ChangeFields(item.Type, item.Player, item.Pos, index, true);
+                        _selected.ChangeFields(item.Player, item.Type, item.Pos, index, true);
                     }
                     else
                     {
                         changed = true;
                         ChangePlayer();
-                        Selected.SetSelected();
+                        _selected.ChangeSelected();
                         item.IsSelected = false;
                     }
                 }
@@ -122,7 +122,7 @@ namespace Checkers
                 if (!changed)
                 {
                     ChangePlayer();
-                    Selected.SetSelected();
+                    _selected.ChangeSelected();
                     item.IsSelected = false;
                 }
 
@@ -134,6 +134,23 @@ namespace Checkers
             {
                 MessageBox.Show("Invalid Move", "Error");
             }
+            return good;
+        }
+
+        private void MoveEnemy(Move move)
+        {
+            var info = new Info();
+            info.ChangeFields(Player.Black, PieceType.Pawn, 
+                new Point(_logic.PosToCol(move.getFrom()), _logic.PosToRow(move.getFrom())), move.getFrom(), false);
+
+            var item = new CheckersPiece
+            {
+                Player = Player.None, 
+                Type = PieceType.Free, 
+                Pos = new Point(_logic.PosToCol(move.getTo()), _logic.PosToRow(move.getFrom()))
+            };
+
+            ChangeStates(info, item, move.getTo());
         }
 
         private void Rectangle_MouseDown(object sender, MouseButtonEventArgs e)
@@ -141,25 +158,22 @@ namespace Checkers
             try
             {
                 var item = ((FrameworkElement)sender).DataContext as CheckersPiece;
-                var index = Pieces.IndexOf(item);
-                
+                var index = _pieces.IndexOf(item);
 
-
-                if (!Selected.GetSelected())
+                if (!_selected.IsSelected)
                 {
-                    if (item != null && item.Player != CurrentPlayer) return;
+                    if (item != null && item.Player != _currentPlayer) return;
                     item.IsSelected = true;
-                    Selected.ChangeFields(item.Type, item.Player, item.Pos, index, true);
+                    _selected.ChangeFields(item.Player, item.Type, item.Pos, index, true);
                 }
                 else
                 {
-                   
-                    if (item != null && item.Player == CurrentPlayer)
+                    if (item != null && item.Player == _currentPlayer)
                     {
-                        if (Selected.index == index)
+                        if (_selected.Index == index)
                         {
                             item.IsSelected = false;
-                            Selected.SetSelected();
+                            _selected.ChangeSelected();
                         }
                         else
                         {
@@ -168,17 +182,19 @@ namespace Checkers
                     }
                     else
                     {
-                        Move(item, index);
-                        Move move = ai.play();
-                        MessageBox.Show("from " + move.getFrom() + " to " + move.getTo());
-                        CurrentPlayer = Player.White;
+                        if (!Move(item, index)) return;
 
+                        var move = _ai.Play();
+                        MoveEnemy(move);
+
+                        ChangePlayer();
+                        //MessageBox.Show("from " + move.getFrom() + " to " + move.getTo());
                     }
                 }
             }
             catch(Exception en)
             {
-                MessageBox.Show("error: " + en.Message);//nasz wyjatek
+                MessageBox.Show("error: " + en.Message);
             }
         }
     }
