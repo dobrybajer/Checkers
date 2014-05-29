@@ -292,18 +292,18 @@ namespace Checkers.Logic
                     int y = posToRow(k);
                     int i, j;
 
-                    if (board[k] == 1)
+                    if (white ? board[k] == 1 : board[k] == -1)
                     {  // Simple piece
-                        i = (white) ? -1 : 1;
+                        i = (white) ? 1 : -1;
                         // See the diagonals /^ e \v
-                        if (x < 7 && y + i >= 0 && y + i <= 7 && (white ? board[colRowToPos(x + 1, y + i)] == 1: board[colRowToPos(x + 1, y + i)] == -1))
+                        if (x < 7 && y + i >= 0 && y + i <= 7 &&  board[colRowToPos(x + 1, y + i)] ==0)
                         {
                             moves.Add(new Move(k, colRowToPos(x + 1, y + i)));
 
                         }
 
                         // See the diagonals ^\ e v/
-                        if (x > 0 && y + i >= 0 && y + i <= 7 &&
+                        if (x-1 >= 0 && y + i >= 0 && y + i <= 7 &&
                             board[colRowToPos(x - 1, y + i)] == 0)
                         {
                             moves.Add(new Move(k, colRowToPos(x - 1, y + i)));
