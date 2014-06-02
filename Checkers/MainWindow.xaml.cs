@@ -84,9 +84,9 @@ namespace Checkers
                     {
                         if (!_logic.MovePlayer(item, index)) return;
 
-                        //var move = _ai.Play();
+                        var move = _ai.Play();
 
-                        //_logic.MoveEnemy(move);
+                        _logic.MoveEnemy(move);
                     }
                 }
             }

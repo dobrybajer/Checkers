@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Checkers.Model;
 using Checkers.ViewModel;
 using System.Windows;
@@ -207,133 +208,17 @@ namespace Checkers.Logic
         }
         #endregion
 
-        #region ConvertToIntArray - GOTOWE
-        /// <summary>
-        /// Zamienia listę kafelków na odpowiającą jej tablicę intów uwzględniając kolor i rodzaj pionku na polach.
-        /// </summary>
-        /// <returns>Tablica intów reprezentująca planszę.</returns>
-        public int[] ConvertToIntArray()
-        {
-            var board = new int[_pieces.Count];
-            var i = 0;
-            foreach (var e in _pieces)
-            {
-                if (e.Player == Player.Black && e.Type == PieceType.Pawn)
-                    board[i] = -1;
-                else if (e.Player == Player.Black && e.Type == PieceType.Queen)
-                    board[i] = -2;
-                else if (e.Player == Player.White && e.Type == PieceType.Pawn)
-                    board[i] = 1;
-                else if (e.Player == Player.White && e.Type == PieceType.Queen)
-                    board[i] = 2;
-                else
-                    board[i] = 0;
-
-                ++i;
-            }
-
-            return board;
-        }
-        #endregion
-
-        // TODO: dodać obsługę damek, konieczności bicia, oraz tworzenia Move jako listy indeksów (a nie to i from)
-        #region LegalMoves - poprawić/dokończyć
-        /// <summary>
-        /// Zwraca listę poprawnych ruchów dla całej planszy dla gracza czarnego - komputer.
-        /// </summary>
-        /// <param name="board">Tablica reprezentująca planszę z pionkami.</param>
-        /// <returns>Lista poprawnych ruchów.</returns>
-        public List<Move> LegalMoves(int[] board)
-        {
-            var moves = new List<Move>();
-
-            for (var k = 0; k < _pieces.Count; k++)
-                if (board[k] < 0)
-                {
-                    var x = PosToCol(k);
-                    var y = PosToRow(k);
-                    int i;
-
-                    if (board[k] == -1)
-                    {  // Simple piece
-                        i = -1;
-                        // See the diagonals /^ e \v
-                        if (x < 7 && y + i >= 0 && y + i <= 7 && board[ColRowToPos(x + 1, y + i)] == 0)
-                        {
-                            moves.Add(new Move(k, ColRowToPos(x + 1, y + i)));
-                        }
-
-                        // See the diagonals ^\ e v/
-                        if (x > 0 && y + i >= 0 && y + i <= 7 && board[ColRowToPos(x - 1, y + i)] == 0)
-                        {
-                            moves.Add(new Move(k, ColRowToPos(x - 1, y + i)));
-                        }
-                    }
-                    else if(board[k] == -2)
-                    { // It's a king piece
-                        // See the diagonal \v
-                        i = x + 1;
-                        var j = y + 1;
-
-                        while (i <= 7 && j <= 7 && board[ColRowToPos(i, j)] == 0)
-                        {
-                            moves.Add(new Move(k, ColRowToPos(i, j)));
-
-                            i++;
-                            j++;
-                        }
-
-
-                        // See the diagonals ^\
-                        i = x - 1;
-                        j = y - 1;
-                        while (i >= 0 && j >= 0 && board[ColRowToPos(i, j)] == 0)
-                        {
-                            moves.Add(new Move(k, ColRowToPos(i, j)));
-
-                            i--;
-                            j--;
-                        }
-
-                        // See the diagonals /^
-                        i = x + 1;
-                        j = y - 1;
-                        while (i <= 7 && j >= 0 && board[ColRowToPos(i, j)] == 0)
-                        {
-                            moves.Add(new Move(k, ColRowToPos(i, j)));
-
-                            i++;
-                            j--;
-                        }
-
-                        // See the diagonals v/
-                        i = x - 1;
-                        j = y + 1;
-                        while (i >= 0 && j <= 7 && board[ColRowToPos(i, j)] == 0)
-                        {
-                            moves.Add(new Move(k, ColRowToPos(i, j)));
-
-                            i--;
-                            j++;
-                        }
-                    }
-                }
-
-            return moves;
-        }
-        #endregion
-
         #region MustAttack - GOTOWE
         /// <summary>
         /// Sprawdza czy dany gracz nie ma możliwości ataku.
         /// </summary>
-        /// <returns>True jeśli dany gracz może zaatakować jakimś pionkiem.</returns>
+        /// <returns>-1 jeśli dany gracz musi zaatakować jakimś pionkiem.</returns>
         private int MustAttack()
         {
             for (var i = 0; i < 32; i++)
-                if (_pieces[i].Player == CurrentPlayer && 
-                    (CurrentPlayer == Player.White && _pieces[i].Pos.Y != BoardSize - 2 ||  
-                    CurrentPlayer == Player.Black && _pieces[i].Pos.Y != 1) && 
+                if (_pieces[i].Player == CurrentPlayer &&
+                    (CurrentPlayer == Player.White && _pieces[i].Pos.Y != BoardSize - 2 ||
+                    CurrentPlayer == Player.Black && _pieces[i].Pos.Y != 1) &&
                     MayAttack(i))
                     return -1;
 
@@ -381,7 +266,7 @@ namespace Checkers.Logic
             if (selected.Type == PieceType.Pawn)
             {
                 var player = item.Pos.Y > selected.Pos.Y ? 1 : -1;
-                var value = IsEven((int) item.Pos.Y) ? (player == 1 ? 3 : 4) : (player == 1 ? 4 : 3);
+                var value = IsEven((int)item.Pos.Y) ? (player == 1 ? 3 : 4) : (player == 1 ? 4 : 3);
                 var indexx = item.Pos.X < selected.Pos.X ? (player == 1 ? 0 : 1) : (player == 1 ? 1 : 0);
 
                 RemovePawn(selected.Index + player * (value + indexx));
@@ -450,7 +335,7 @@ namespace Checkers.Logic
                 }
 
                 item.IsSelected = false;
-                Selected.ChangeSelected(); 
+                Selected.ChangeSelected();
 
                 MakeQueen(index);
                 ChangePlayer();
@@ -460,6 +345,203 @@ namespace Checkers.Logic
 
             MessageBox.Show("Invalid Move", "Error");
             return false;
+        }
+        #endregion
+
+        //------------------------------ Metody tylko dla komputera --------------------------------------------
+
+        #region ConvertToIntArray - GOTOWE
+        /// <summary>
+        /// Zamienia listę kafelków na odpowiającą jej tablicę intów uwzględniając kolor i rodzaj pionku na polach.
+        /// </summary>
+        /// <returns>Tablica intów reprezentująca planszę.</returns>
+        public int[] ConvertToIntArray()
+        {
+            var board = new int[_pieces.Count];
+            var i = 0;
+            foreach (var e in _pieces)
+            {
+                if (e.Player == Player.Black && e.Type == PieceType.Pawn)
+                    board[i] = -1;
+                else if (e.Player == Player.Black && e.Type == PieceType.Queen)
+                    board[i] = -2;
+                else if (e.Player == Player.White && e.Type == PieceType.Pawn)
+                    board[i] = 1;
+                else if (e.Player == Player.White && e.Type == PieceType.Queen)
+                    board[i] = 2;
+                else
+                    board[i] = 0;
+
+                ++i;
+            }
+
+            return board;
+        }
+        #endregion
+
+        #region LegalMoves - poprawić/dokończyć
+        /// <summary>
+        /// Zwraca listę poprawnych ruchów dla całej planszy dla gracza czarnego - komputer.
+        /// </summary>
+        /// <param name="board">Tablica reprezentująca planszę z pionkami.</param>
+        /// <returns>Lista poprawnych ruchów.</returns>
+        public List<Move> LegalMoves(int[] board)
+        {
+            var moves = new List<Move>();
+            var attack = ComputerMustAttack(board);
+
+            if (attack != null && attack.Count != 0) // must attack (only piece)
+                return attack; 
+
+            for (var k = 0; k < _pieces.Count; k++)
+                if (board[k] < 0)
+                {
+                    var x = PosToCol(k);
+                    var y = PosToRow(k);
+
+                    switch (board[k])
+                    {
+                        case -1: // It's a simple piece
+                            if (IsInBoard(x + 1, y - 1) && board[ColRowToPos(x + 1, y - 1)] == 0)
+                            {
+                                moves.Add(new Move(k, ColRowToPos(x + 1, y - 1)));
+                            }
+                            if (IsInBoard(x - 1, y - 1) && board[ColRowToPos(x - 1, y - 1)] == 0)
+                            {
+                                moves.Add(new Move(k, ColRowToPos(x - 1, y - 1)));
+                            }
+                            break;
+                        case -2: // It's a king piece
+                            // See the diagonal \v
+                            var i = x + 1;
+                            var j = y + 1;
+
+                            while (i <= 7 && j <= 7 && board[ColRowToPos(i, j)] == 0)
+                            {
+                                moves.Add(new Move(k, ColRowToPos(i, j)));
+
+                                i++;
+                                j++;
+                            }
+
+                            // See the diagonals ^\
+                            i = x - 1;
+                            j = y - 1;
+
+                            while (i >= 0 && j >= 0 && board[ColRowToPos(i, j)] == 0)
+                            {
+                                moves.Add(new Move(k, ColRowToPos(i, j)));
+
+                                i--;
+                                j--;
+                            }
+
+                            // See the diagonals /^
+                            i = x + 1;
+                            j = y - 1;
+                            while (i <= 7 && j >= 0 && board[ColRowToPos(i, j)] == 0)
+                            {
+                                moves.Add(new Move(k, ColRowToPos(i, j)));
+
+                                i++;
+                                j--;
+                            }
+
+                            // See the diagonals v/
+                            i = x - 1;
+                            j = y + 1;
+                            while (i >= 0 && j <= 7 && board[ColRowToPos(i, j)] == 0)
+                            {
+                                moves.Add(new Move(k, ColRowToPos(i, j)));
+
+                                i--;
+                                j++;
+                            }
+                            break;
+                    }
+                }
+
+            return moves;
+        }
+        #endregion
+
+        // TODO: dodać uwzględnianie bić wielokrotnych i dla damek
+        #region ComputerMayAttack
+        private static IEnumerable<Move> ComputerMayAttack(IList<int> board, int i)
+        {
+            if (board[i] != -1)
+                return null;
+
+            var attacks = new List<Move>();
+
+            var x = PosToCol(i);
+            var y = PosToRow(i);
+
+            // Sprawdzanie bicia w przód
+            var yN = y - 1;
+            var xNl = x - 1;
+            var xNr = x + 1;
+            var yF = y - 2;
+            var xFl = x - 2;
+            var xFr = x + 2;
+
+            // Sprawdzanie bicia w tył
+            var byN = y + 1;
+            var bxNl = x - 1;
+            var bxNr = x + 1;
+            var bYFb = y + 2;
+            var bxFlB = x - 2;
+            var bxFrB = x + 2;
+
+            if (IsInBoard(xNl, yN) && board[ColRowToPos(xNl, yN)] > 0 && IsInBoard(xFl, yF) &&
+                board[ColRowToPos(xFl, yF)] == 0)
+                attacks.Add(
+                    new Move(i, ColRowToPos(xFl, yF))
+                    {
+                        ToRemove = new List<int> { ColRowToPos(xNl, yN) }
+                    });
+
+            if (IsInBoard(xNr, yN) && board[ColRowToPos(xNr, yN)] > 0 && IsInBoard(xFr, yF) &&
+                board[ColRowToPos(xFr, yF)] == 0)
+                attacks.Add(
+                    new Move(i, ColRowToPos(xFr, yF))
+                    {
+                        ToRemove = new List<int> { ColRowToPos(xNr, yN) }
+                    });
+
+            if (IsInBoard(bxNl, byN) && board[ColRowToPos(bxNl, byN)] > 0 && IsInBoard(bxFlB, bYFb) &&
+                board[ColRowToPos(bxFlB, bYFb)] == 0)
+                attacks.Add(
+                    new Move(i, ColRowToPos(bxFlB, bYFb))
+                    {
+                        ToRemove = new List<int> { ColRowToPos(bxNl, byN) }
+                    });
+
+            if (IsInBoard(bxNr, byN) && board[ColRowToPos(bxNr, byN)] > 0 && IsInBoard(bxFrB, bYFb) &&
+                board[ColRowToPos(bxFrB, bYFb)] == 0)
+                attacks.Add(
+                    new Move(i, ColRowToPos(bxFrB, bYFb))
+                    {
+                        ToRemove = new List<int> { ColRowToPos(bxNr, byN) }
+                    });
+
+            return attacks;
+        }
+        #endregion
+
+        #region ComputerMustAttack
+        private static List<Move> ComputerMustAttack(IList<int> board)
+        {
+            var attacks = new List<Move>();
+
+            for (var i = 0; i < 32; i++)
+            {
+                var moves = ComputerMayAttack(board, i);
+                if(moves != null && moves.Count() != 0)
+                    attacks.AddRange(moves);
+            }
+
+            return attacks;
         }
         #endregion
 
