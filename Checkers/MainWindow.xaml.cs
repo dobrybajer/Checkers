@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using Checkers.Logic;
 using Checkers.Model;
 using System.Collections.ObjectModel;
@@ -6,20 +8,69 @@ using System.Windows;
 using System.Windows.Input;
 using Checkers.ViewModel;
 using GameLogic = Checkers.Logic.Logic;
+using System.ComponentModel;
 
 namespace Checkers
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow
+    public partial class MainWindow : INotifyPropertyChanged
     {
         private const int BoardSize = 8;
-
+        private const int PawnCount = 12;
         private ObservableCollection<CheckersPiece> _pieces;
+        private int _white;
+        private int _black;
+        private int _whiteHitted;
+        private int _blackHitted;
 
-        private readonly GameLogic _logic;
-        private readonly Computer _ai;
+        public int White
+        {
+            get { return _white; }
+            set
+            {
+                if (value == _white) return;
+                _white = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int Black
+        {
+            get { return _black; }
+            set
+            {
+                if (value == _black) return;
+                _black = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int WhiteHitted
+        {
+            get { return _whiteHitted; }
+            set
+            {
+                if (value == _whiteHitted) return;
+                _whiteHitted = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int BlackHitted
+        {
+            get { return _blackHitted; }
+            set
+            {
+                if (value == _blackHitted) return;
+                _blackHitted = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private GameLogic _logic;
+        private Computer _ai;
 
         public MainWindow()
         {
@@ -27,13 +78,10 @@ namespace Checkers
 
             DataContext = this;
 
-            CreateBoard();
-            
-            _logic = new GameLogic(_pieces, Player.White);
-            _ai =  new Computer(_logic);
+            PrepareGame();
         }
 
-        private void CreateBoard()
+        private void PrepareGame()
         {
             _pieces = new ObservableCollection<CheckersPiece>();
             for (var i = 0; i < BoardSize; ++i)
@@ -50,6 +98,29 @@ namespace Checkers
             }
 
             CheckersBoard.ItemsSource = _pieces;
+
+            _logic = new GameLogic(_pieces, Player.White);
+            _ai = new Computer(_logic);
+
+            UpdateInfos();
+        }
+
+        private void UpdateInfos()
+        {
+            White = _pieces.Count(x => x.Player == Player.White);
+            Black = _pieces.Count(x => x.Player == Player.Black);
+            WhiteHitted = PawnCount - White;
+            BlackHitted = PawnCount - Black;
+
+            if (White != 0 && Black != 0)
+                return;
+
+            if (White == 0)
+                MessageBox.Show("Gracz czarny (komputer) wygrał !");
+            if (Black == 0)
+                MessageBox.Show("Gratulacje, wygrałeś/aś !");
+
+            PrepareGame();
         }
 
         private void Rectangle_MouseDown(object sender, MouseButtonEventArgs e)
@@ -89,11 +160,21 @@ namespace Checkers
                         _logic.MoveEnemy(move);
                     }
                 }
+
+                UpdateInfos();
             }
             catch(Exception en)
             {
                 MessageBox.Show("error: " + en.Message);
             }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            var handler = PropertyChanged;
+            if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
