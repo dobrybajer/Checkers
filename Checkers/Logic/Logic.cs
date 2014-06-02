@@ -31,7 +31,7 @@ namespace Checkers.Logic
         /// <summary>
         /// Zmienia kolor gracza w logice.
         /// </summary>
-        public void ChangePlayer()
+        private void ChangePlayer()
         {
             CurrentPlayer = CurrentPlayer == Player.Black ? Player.White : Player.Black;
         }
@@ -50,16 +50,20 @@ namespace Checkers.Logic
         }
         #endregion
 
-        // TODO: sprawdźić czy działa, dodać atakowanie w tył
-        #region CanHit - poprawić/dokończyć
-        private bool CanHit(int position)
+        // TODO: dodać sprawdzanie dla obiektów typu Queen
+        #region MayAttack - sprawdza tylko dla obiektów typu Pawn
+        private bool MayAttack(int position)
         {
+            if (_pieces[position].Type == PieceType.Queen)
+                return false;
+
             var player = CurrentPlayer == Player.White ? 1 : -1;
             var enemy = CurrentPlayer == Player.White ? Player.Black : Player.White;
 
             var x = PosToCol(position);
             var y = PosToRow(position);
 
+            // Sprawdzanie bicia w przód
             var yN = y + player;
             var xNl = x - 1;
             var xNr = x + 1;
@@ -67,24 +71,32 @@ namespace Checkers.Logic
             var xFl = x - 2;
             var xFr = x + 2;
 
+            // Sprawdzanie bicia w tył
+            var byN = y - player;
+            var bxNl = x - 1;
+            var bxNr = x + 1;
+            var bYFb = y - 2 * player;
+            var bxFlB = x - 2;
+            var bxFrB = x + 2;
+
             return IsInBoard(xNl, yN) && _pieces[ColRowToPos(xNl, yN)].Player == enemy &&
                    IsInBoard(xFl, yF) && _pieces[ColRowToPos(xFl, yF)].Player == Player.None ||
                    IsInBoard(xNr, yN) && _pieces[ColRowToPos(xNr, yN)].Player == enemy &&
-                   IsInBoard(xFr, yF) && _pieces[ColRowToPos(xFr, yF)].Player == Player.None;
+                   IsInBoard(xFr, yF) && _pieces[ColRowToPos(xFr, yF)].Player == Player.None ||
+
+                   IsInBoard(bxNl, byN) && _pieces[ColRowToPos(bxNl, byN)].Player == enemy &&
+                   IsInBoard(bxFlB, bYFb) && _pieces[ColRowToPos(bxFlB, bYFb)].Player == Player.None ||
+                   IsInBoard(bxNr, byN) && _pieces[ColRowToPos(bxNr, byN)].Player == enemy &&
+                   IsInBoard(bxFrB, bYFb) && _pieces[ColRowToPos(bxFrB, bYFb)].Player == Player.None;
         }
         #endregion
 
-        // TODO: zrobić ruchy dla królowej, dodać konieczność atakowania
-        #region IsValidMove - poprawić/dokończyć
+        #region IsValidMove - GOTOWE
         private int IsValidMove(int from, int to)
         {
-            if (from < 0 || from > _pieces.Count - 1 || to < 0 || to > _pieces.Count - 1)
-                return -1;
-
-            if (_pieces[from].Type == PieceType.Free || _pieces[to].Type != PieceType.Free)
-                return -1;
-
-            if (_pieces[from].Player != CurrentPlayer)
+            if (from < 0 || from > _pieces.Count - 1 || to < 0 || to > _pieces.Count - 1 || 
+                _pieces[from].Type == PieceType.Free || _pieces[to].Type != PieceType.Free ||
+                _pieces[from].Player != CurrentPlayer) 
                 return -1;
 
             var color = _pieces[from].Player;
@@ -96,17 +108,9 @@ namespace Checkers.Logic
             var toRow = PosToRow(to);
             var toCol = PosToCol(to);
 
-            int incX, incY;
+            var incX = fromCol > toCol ? -1 : 1;
 
-            if (fromCol > toCol)
-                incX = -1;
-            else
-                incX = 1;
-
-            if (fromRow > toRow)
-                incY = -1;
-            else
-                incY = 1;
+            var incY = fromRow > toRow ? -1 : 1;
 
             var x = fromCol + incX;
             var y = fromRow + incY;
@@ -121,13 +125,15 @@ namespace Checkers.Logic
                     goodDir = -1;
 
                 if (x == toCol && y == toRow)
-                    return goodDir;// && !mustAttack ();
+                    return goodDir + MustAttack();
 
                 // If it wasn't a simple move it can only be an attack move
-                if (goodDir != -1 && x + incX == toCol && y + incY == toRow && _pieces[ColRowToPos(x, y)].Player == enemy)
+                if (x + incX == toCol && y + incY == toRow &&
+                    _pieces[ColRowToPos(x, y)].Player == enemy)
                     return 1;
+
                 return -1;
-            }
+            } // else
             while (x != toCol && y != toRow && _pieces[ColRowToPos(x, y)].Type == PieceType.Free)
             {
                 x += incX;
@@ -136,7 +142,7 @@ namespace Checkers.Logic
 
             // Simple move with a king piece
             if (x == toCol && y == toRow)
-                return -1;// !mustAttack();
+                return MustAttack();
 
             if (_pieces[ColRowToPos(x, y)].Player != enemy) return -1;
 
@@ -150,7 +156,7 @@ namespace Checkers.Logic
             }
 
             if (x == toCol && y == toRow)
-                return 0;
+                return 1;
 
             return -1;
         }
@@ -263,7 +269,7 @@ namespace Checkers.Logic
                             moves.Add(new Move(k, ColRowToPos(x - 1, y + i)));
                         }
                     }
-                    else
+                    else if(board[k] == -2)
                     { // It's a king piece
                         // See the diagonal \v
                         i = x + 1;
@@ -317,13 +323,44 @@ namespace Checkers.Logic
         }
         #endregion
 
+        #region MustAttack - GOTOWE
+        /// <summary>
+        /// Sprawdza czy dany gracz nie ma możliwości ataku.
+        /// </summary>
+        /// <returns>True jeśli dany gracz może zaatakować jakimś pionkiem.</returns>
+        private int MustAttack()
+        {
+            for (var i = 0; i < 32; i++)
+                if (_pieces[i].Player == CurrentPlayer && 
+                    (CurrentPlayer == Player.White && _pieces[i].Pos.Y != BoardSize - 2 ||  
+                    CurrentPlayer == Player.Black && _pieces[i].Pos.Y != 1) && 
+                    MayAttack(i))
+                    return -1;
+
+            return 0;
+        }
+        #endregion
+
+        #region MakeQueen - GOTOWE
+        /// <summary>
+        /// Tworzy damkę ze zwykłego pionka.
+        /// </summary>
+        /// <param name="index">Indeks obiektu w kolekcji Tile, który ma być zamieniony na damkę.</param>
         private void MakeQueen(int index)
         {
             if (CurrentPlayer == Player.White && _pieces[index].Pos.Y == BoardSize - 1 ||
                CurrentPlayer == Player.Black && _pieces[index].Pos.Y == 0)
                 _pieces[index].Type = PieceType.Queen;
         }
+        #endregion
 
+        #region ChangeStates - GOTOWE
+        /// <summary>
+        /// Uaktualnia stan planszy po wykonaniu jednego poprawnego ruchu.
+        /// </summary>
+        /// <param name="selected">Obeikt zaznaczony do przesunięcia.</param>
+        /// <param name="item2">Element planszy, na którym stanie obiekt do przesunięcia.</param>
+        /// <param name="index2">Indeks elementu docelowego w kolekcji Tile.</param>
         private void ChangeStates(Info selected, CheckersPiece item2, int index2)
         {
             _pieces[selected.Index].Player = item2.Player;
@@ -331,30 +368,69 @@ namespace Checkers.Logic
             _pieces[index2].Player = selected.Player;
             _pieces[index2].Type = selected.Type;
         }
+        #endregion
 
+        #region RemoveDensePawn - GOTOWE (uwzględnia zwykły pionek oraz królową dla każdego ruchu)
+        /// <summary>
+        /// Metoda usuwa z planszy zbity pionek/królową.
+        /// </summary>
+        /// <param name="selected">Obiekt zaznaczony do ruszenia.</param>
+        /// <param name="item">Element planszy, na którym postawimy obiekt 'selected'.</param>
         private void RemoveDensePawn(Info selected, CheckersPiece item)
         {
-            var indexCol = item.Pos.Y;
-            var player = CurrentPlayer == Player.Black ? -1 : 1;
-            var value = IsEven((int)selected.Pos.Y) ? (player == 1 ? 3 : 4) : (player == 1 ? 4 : 3);
-            var indexx = indexCol < selected.Pos.X ? (player == 1 ? 0 : 1) : (player == 1 ? 1 : 0);
+            if (selected.Type == PieceType.Pawn)
+            {
+                var player = item.Pos.Y > selected.Pos.Y ? 1 : -1;
+                var value = IsEven((int) item.Pos.Y) ? (player == 1 ? 3 : 4) : (player == 1 ? 4 : 3);
+                var indexx = item.Pos.X < selected.Pos.X ? (player == 1 ? 0 : 1) : (player == 1 ? 1 : 0);
 
-            RemovePawn(selected.Index + player * (value + indexx));
+                RemovePawn(selected.Index + player * (value + indexx));
+            }
+            else
+            {
+                var x = item.Pos.X;
+                var y = item.Pos.Y;
+                var vertically = y < selected.Pos.Y ? 1 : -1;
+                var horizontally = x < selected.Pos.X ? 1 : -1;
+
+                x += horizontally;
+                y += vertically;
+
+                while (_pieces[ColRowToPos((int)x, (int)y)].Player == Player.None)
+                {
+                    x += horizontally;
+                    y += vertically;
+                }
+
+                RemovePawn(ColRowToPos((int)x, (int)y));
+            }
         }
 
+        /// <summary>
+        /// Zmienia dany element w kolekcji Tile na pusty.
+        /// </summary>
+        /// <param name="index">Indeks elementu w kolekcji Tile do ustawienia na pusty.</param>
         private void RemovePawn(int index)
         {
             _pieces[index].Type = PieceType.Free;
             _pieces[index].Player = Player.None;
         }
+        #endregion
 
+        #region MovePlayer - GOTOWE
+        /// <summary>
+        /// Wykonuje ruch gracza uwzględniając czy jest on poprawny oraz czy jest biciem.
+        /// </summary>
+        /// <param name="item">Obiekt planszy na który chcemy przenieść zaznaczony pionek.</param>
+        /// <param name="index">Indeks obiektu kolekcji Tile.</param>
+        /// <returns>True jeśli zakończono daną turę, false jeśli dalej można bić.</returns>
         public bool MovePlayer(CheckersPiece item, int index)
         {
             var from = Selected.Index;
 
             var valid = IsValidMove(from, index);
 
-            if (valid != -1)
+            if (valid > -1)
             {
                 ChangeStates(Selected, item, index);
 
@@ -362,20 +438,19 @@ namespace Checkers.Logic
                 {
                     RemoveDensePawn(Selected, item);
 
-                    if (CanHit(index))
+                    if (MayAttack(index))
                     {
                         item.IsSelected = true;
                         Selected.ChangeFields(item.Player, item.Type, item.Pos, index, true);
 
                         MakeQueen(index);
-                        ChangePlayer();
 
                         return false;
                     }
                 }
 
-                Selected.ChangeSelected();
                 item.IsSelected = false;
+                Selected.ChangeSelected(); 
 
                 MakeQueen(index);
                 ChangePlayer();
@@ -386,9 +461,20 @@ namespace Checkers.Logic
             MessageBox.Show("Invalid Move", "Error");
             return false;
         }
+        #endregion
 
+        // TODO: sprawdzić czy działa
+        #region MoveEnemy - ?
         public void MoveEnemy(Move move)
         {
+            if (move == null)
+            {
+                MessageBox.Show("No possible moves for computer.");
+                return;
+            }
+
+            MessageBox.Show("from " + move.GetFrom() + " to " + move.GetTo() + " to remove pawns: " + move.ToRemove.Count);
+
             var info = new Info();
             info.ChangeFields(Player.Black, PieceType.Pawn,
                 new Point(PosToCol(move.GetFrom()), PosToRow(move.GetFrom())), move.GetFrom(), false);
@@ -409,6 +495,9 @@ namespace Checkers.Logic
             }
 
             ChangeStates(info, item, move.GetTo());
+
+            ChangePlayer();
         }
+        #endregion
     }
 }

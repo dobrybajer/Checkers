@@ -61,7 +61,8 @@ namespace Checkers
 
                 if (!_logic.Selected.IsSelected)
                 {
-                    if (item != null && item.Player != _logic.CurrentPlayer) return;
+                    if (item == null || item.Player != _logic.CurrentPlayer) return;
+
                     item.IsSelected = true;
                     _logic.Selected.ChangeFields(item.Player, item.Type, item.Pos, index, true);
                 }
@@ -83,13 +84,9 @@ namespace Checkers
                     {
                         if (!_logic.MovePlayer(item, index)) return;
 
-                        var move = _ai.Play();
+                        //var move = _ai.Play();
 
-                        if(move != null)
-                            _logic.MoveEnemy(move);
-
-                        _logic.ChangePlayer(); 
-                        //MessageBox.Show("from " + move.getFrom() + " to " + move.getTo());
+                        //_logic.MoveEnemy(move);
                     }
                 }
             }
