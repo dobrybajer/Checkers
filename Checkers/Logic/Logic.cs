@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using Checkers.Model;
 using Checkers.ViewModel;
 using System.Windows;
@@ -404,7 +405,7 @@ namespace Checkers.Logic
 
                 MakeQueen(index);
                 ChangePlayer();
-
+                Thread.Sleep(1000);
                 return true;
             }
 

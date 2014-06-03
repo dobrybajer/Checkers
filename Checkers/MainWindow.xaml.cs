@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 using Checkers.Logic;
 using Checkers.Model;
@@ -28,6 +29,23 @@ namespace Checkers
         private int _blackHitted;
 
         private Stopwatch _stoper;
+
+        private event EventHandler ComputerTurn;
+
+        private void PlayComputer(object sender, EventArgs e)
+        {
+            _stoper.Start();
+            var move = _ai.Play();
+
+            _logic.MoveEnemy(move);
+            _stoper.Stop();
+
+            TimeComputer += _stoper.ElapsedMilliseconds;
+            TimeActualComputer = _stoper.ElapsedMilliseconds;
+            _stoper.Reset();
+
+            _stoper.Start();
+        }
 
         private double _timeComputer;
         private double _timePlayer;
@@ -155,6 +173,8 @@ namespace Checkers
 
             _stoper = new Stopwatch();
             _stoper.Start();
+
+            ComputerTurn += PlayComputer;
         }
 
         private void UpdateInfos()
@@ -213,17 +233,7 @@ namespace Checkers
                         TimeActualPlayer = _stoper.ElapsedMilliseconds;
                         _stoper.Reset();
 
-                        _stoper.Start();
-                        var move = _ai.Play();
-
-                        _logic.MoveEnemy(move);
-                        _stoper.Stop();
-
-                        TimeComputer += _stoper.ElapsedMilliseconds;
-                        TimeActualComputer = _stoper.ElapsedMilliseconds;
-                        _stoper.Reset();
-
-                        _stoper.Start();
+                        new Task(() => ComputerTurn(this, new EventArgs())).Start();
                     }
                 }
 
