@@ -25,7 +25,16 @@ namespace Checkers.Logic
         /// <summary>
         /// Maksymalna głębokość przeszukiwania drzewa ruchów.
         /// </summary>
-        private const int MaxDepth = 5;
+        private int _maxDepth = 5;
+
+        /// <summary>
+        /// Zmienia maksymalną głębokość przeszukiwania drzewa na wartość value.
+        /// </summary>
+        /// <param name="value">Nowa wartość maksymalnej głębokości przeszukiwania drzewa.</param>
+        public void SetMaxDepth(int value)
+        {
+            _maxDepth = value + 1;
+        }
 
         /*
         private readonly int[] _tableWeight = { 4, 4, 4, 4, 
@@ -181,7 +190,7 @@ namespace Checkers.Logic
             var colorForce = 0;
             var enemyForce = 0;
 
-            int[] lboard = board.ToArray<int>();
+            var lboard = board.ToArray();
 
             const int colorKing = -2;
 
@@ -313,9 +322,9 @@ namespace Checkers.Logic
         /// </summary>
         /// <param name="depth">Aktualna głębokość przeszukiwania drzewa ruchów.</param>
         /// <returns>True jeśli nie osiągnięto maksymalnej głębokości przeszukiwania.</returns>
-        private static bool CutOffTest(int depth)
+        private bool CutOffTest(int depth)
         {
-            return depth > MaxDepth;
+            return depth > _maxDepth;
         }
 
 

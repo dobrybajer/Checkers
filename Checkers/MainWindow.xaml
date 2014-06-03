@@ -110,13 +110,13 @@
             </Grid.Background>
             <TextBlock Grid.ColumnSpan="2" Text="Gracz" FontSize="36" FontFamily="Rosewood Std Regular" HorizontalAlignment="Center" VerticalAlignment="Center" />
             <TextBlock Grid.Row="1" Text="Kolor:" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
-            <TextBlock Grid.Row="2" Text="Czas w danej rundzie:" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
-            <TextBlock Grid.Row="3" Text="Czas całkowity:" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
+            <TextBlock Grid.Row="2" Text="Czas w danej rundzie (ms):" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
+            <TextBlock Grid.Row="3" Text="Czas całkowity (ms):" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
             <TextBlock Grid.Row="4" Text="Zostało pionków:" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
             <TextBlock Grid.Row="5" Text="Zbite pionki przeciwnika:" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
             <TextBlock Grid.Row="1" Grid.Column="1" Text="Bialy" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
-            <TextBlock Grid.Row="2" Grid.Column="1" Text="-----" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
-            <TextBlock Grid.Row="3" Grid.Column="1" Text="-----" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TimeActualPlayer}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
+            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TimePlayer}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
             <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding White}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
             <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding BlackHitted}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
         </Grid>
@@ -134,21 +134,32 @@
                 <RowDefinition/>
                 <RowDefinition/>
                 <RowDefinition/>
+                <RowDefinition/>
             </Grid.RowDefinitions>
             <Grid.Background>
                 <SolidColorBrush Color="#FFBD0F0F" Opacity="0.4"/>
             </Grid.Background>
             <TextBlock Grid.ColumnSpan="2" Text="Komputer" FontSize="36" FontFamily="Rosewood Std Regular" HorizontalAlignment="Center" VerticalAlignment="Center" />
             <TextBlock Grid.Row="1" Text="Kolor:" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
-            <TextBlock Grid.Row="2" Text="Czas w danej rundzie:" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
-            <TextBlock Grid.Row="3" Text="Czas całkowity:" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
+            <TextBlock Grid.Row="2" Text="Czas w danej rundzie (ms):" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
+            <TextBlock Grid.Row="3" Text="Czas całkowity (ms):" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
             <TextBlock Grid.Row="4" Text="Zostało pionków:" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
             <TextBlock Grid.Row="5" Text="Zbite pionki przeciwnika:" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
             <TextBlock Grid.Row="1" Grid.Column="1" Text="Czarny" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
-            <TextBlock Grid.Row="2" Grid.Column="1" Text="-----" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
-            <TextBlock Grid.Row="3" Grid.Column="1" Text="-----" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TimeActualComputer}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
+            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding TimeComputer}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
             <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Black}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
             <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding WhiteHitted}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
+            <TextBlock Grid.Row="6" Text="Posiom trudności:" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="10,0,0,0"/>
+            <ComboBox Name="Level" Grid.Row="6" Grid.Column="1" Width ="40" Height="20" SelectedIndex="0" HorizontalAlignment="Left" SelectionChanged="Level_SelectionChanged">
+                <ComboBoxItem Content="1"/>
+                <ComboBoxItem Content="2"/>
+                <ComboBoxItem Content="3"/>
+                <ComboBoxItem Content="4"/>
+                <ComboBoxItem Content="5"/>
+                <ComboBoxItem Content="6"/>
+                <ComboBoxItem Content="7"/>
+            </ComboBox>
         </Grid>
         <Viewbox Grid.Column="1">
             <ItemsControl Name="CheckersBoard">

@@ -4,6 +4,7 @@ using System.Linq;
 using Checkers.Model;
 using Checkers.ViewModel;
 using System.Windows;
+using System;
 
 namespace Checkers.Logic
 {
@@ -132,7 +133,7 @@ namespace Checkers.Logic
                     else { nx += 1; ny -= 1; }
                 }
             }
-            catch (System.Exception e)
+            catch (Exception)
             {
                 
             }

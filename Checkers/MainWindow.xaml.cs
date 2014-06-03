@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows.Controls;
 using Checkers.Logic;
 using Checkers.Model;
 using System.Collections.ObjectModel;
@@ -9,6 +10,7 @@ using System.Windows.Input;
 using Checkers.ViewModel;
 using GameLogic = Checkers.Logic.Logic;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace Checkers
 {
@@ -24,6 +26,53 @@ namespace Checkers
         private int _black;
         private int _whiteHitted;
         private int _blackHitted;
+
+        private Stopwatch _stoper;
+
+        private double _timeComputer;
+        private double _timePlayer;
+        private double _timeActualComputer;
+        private double _timeActualPlayer;
+
+        public double TimeComputer
+        {
+            get { return _timeComputer; }
+            set
+            {  
+                _timeComputer = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double TimePlayer
+        {
+            get { return _timePlayer; }
+            set
+            {
+                _timePlayer = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double TimeActualComputer
+        {
+            get { return _timeActualComputer; }
+            set
+            {
+                _timeActualComputer = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double TimeActualPlayer
+        {
+            get { return _timeActualPlayer; }
+            set
+            {
+                _timeActualPlayer = value;
+                OnPropertyChanged();
+            }
+        }
 
         public int White
         {
@@ -103,6 +152,9 @@ namespace Checkers
             _ai = new Computer(_logic);
 
             UpdateInfos();
+
+            _stoper = new Stopwatch();
+            _stoper.Start();
         }
 
         private void UpdateInfos()
@@ -153,11 +205,25 @@ namespace Checkers
                     }
                     else
                     {
+                        
                         if (!_logic.MovePlayer(item, index)) return;
+                        _stoper.Stop();
 
+                        TimePlayer += _stoper.ElapsedMilliseconds;
+                        TimeActualPlayer = _stoper.ElapsedMilliseconds;
+                        _stoper.Reset();
+
+                        _stoper.Start();
                         var move = _ai.Play();
 
                         _logic.MoveEnemy(move);
+                        _stoper.Stop();
+
+                        TimeComputer += _stoper.ElapsedMilliseconds;
+                        TimeActualComputer = _stoper.ElapsedMilliseconds;
+                        _stoper.Reset();
+
+                        _stoper.Start();
                     }
                 }
 
@@ -175,6 +241,14 @@ namespace Checkers
         {
             var handler = PropertyChanged;
             if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void Level_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var combobox = sender as ComboBox;
+            if (combobox == null) return;
+            var level = combobox.SelectedIndex;
+            if (_ai != null) _ai.SetMaxDepth(level);
         }
     }
 }
