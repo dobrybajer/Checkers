@@ -25,7 +25,7 @@ namespace Checkers.Logic
         /// <summary>
         /// Maksymalna głębokość przeszukiwania drzewa ruchów.
         /// </summary>
-        private const int MaxDepth = 1;
+        private const int MaxDepth = 5;
 
         /*
         private readonly int[] _tableWeight = { 4, 4, 4, 4, 
@@ -284,10 +284,10 @@ namespace Checkers.Logic
                 switch (piece)
                 {
                     case 1:
-                        value = 1;
+                        value = 6;
                         break;
                     case 2:
-                        value = 5;
+                        value = 8;
                         break;
                 }
             }
@@ -296,10 +296,10 @@ namespace Checkers.Logic
                 switch (piece)
                 {
                     case -1:
-                        value = 1;
+                        value = 6;
                         break;
                     case -2:
-                        value = 5;
+                        value = 8;
                         break;
                 }
             }
@@ -338,7 +338,7 @@ namespace Checkers.Logic
                             else
                                 value = 3;
                         }
-                        value = 2;
+                        else { value = 2; }
 
                     }
                     else if ((pos - 4) % 8 == 0)
@@ -350,7 +350,7 @@ namespace Checkers.Logic
                             else
                                 value = 3;
                         }
-                        value = 2;
+                        else { value = 2; }
                     }
                     else if ((pos + 1) % 8 == 0 )//pionki pod prawa sciana bez prawego bicia
                     {
@@ -362,7 +362,7 @@ namespace Checkers.Logic
                                 value = 3;
 
                         }
-                        value = 2;
+                        else { value = 2; }
                     }
                     else if ((pos + 5) % 8 == 0)
                     {
@@ -374,7 +374,7 @@ namespace Checkers.Logic
                                 value = 3;
 
                         }
-                        value = 2;
+                        else { value = 2; }
                     }
                     else
                     {
@@ -439,7 +439,7 @@ namespace Checkers.Logic
                             else
                                 value = 3;
                         }
-                        value = 2;
+                        else { value = 2; }
 
                     }
                     else if ((pos - 4) % 8 == 0)
@@ -451,7 +451,7 @@ namespace Checkers.Logic
                             else
                                 value = 3;
                         }
-                        value = 2;
+                        else { value = 2; }
                     }
                     else if ((pos + 1) % 8 == 0)//pionki pod prawa sciana bez prawego bicia
                     {
@@ -463,7 +463,7 @@ namespace Checkers.Logic
                                 value = 3;
 
                         }
-                        value = 2;
+                        else { value = 2; }
                     }
                     else if ((pos + 3) % 8 == 0)
                     {
@@ -475,7 +475,7 @@ namespace Checkers.Logic
                                 value = 3;
 
                         }
-                        value = 2;
+                        else { value = 2; }
                     }
                     else
                     {

@@ -55,9 +55,6 @@ namespace Checkers.Logic
         #region MayAttack - sprawdza tylko dla obiektów typu Pawn
         private bool MayAttack(int position)
         {
-            if (_pieces[position].Type == PieceType.Queen)
-                return false;
-
             var player = CurrentPlayer == Player.White ? 1 : -1;
             var enemy = CurrentPlayer == Player.White ? Player.Black : Player.White;
 
@@ -79,7 +76,8 @@ namespace Checkers.Logic
             var bYFb = y - 2 * player;
             var bxFlB = x - 2;
             var bxFrB = x + 2;
-
+            if (_pieces[position].Type == PieceType.Pawn)
+            {
             return IsInBoard(xNl, yN) && _pieces[ColRowToPos(xNl, yN)].Player == enemy &&
                    IsInBoard(xFl, yF) && _pieces[ColRowToPos(xFl, yF)].Player == Player.None ||
                    IsInBoard(xNr, yN) && _pieces[ColRowToPos(xNr, yN)].Player == enemy &&
@@ -89,6 +87,56 @@ namespace Checkers.Logic
                    IsInBoard(bxFlB, bYFb) && _pieces[ColRowToPos(bxFlB, bYFb)].Player == Player.None ||
                    IsInBoard(bxNr, byN) && _pieces[ColRowToPos(bxNr, byN)].Player == enemy &&
                    IsInBoard(bxFrB, bYFb) && _pieces[ColRowToPos(bxFrB, bYFb)].Player == Player.None;
+            }
+
+              var hit = false;
+                var nx = x;
+                var ny = y;
+                 try
+            {
+                while (IsInBoard(nx + 2, ny + 2))
+                {
+                    //prawy doł
+                    if (_pieces[ColRowToPos(nx + 1, ny + 1)].Player == enemy && _pieces[ColRowToPos(nx + 2, ny + 2)].Player == Player.None)
+                        hit = true;
+                    else { nx += 1; ny -= 1; }
+                }
+
+                nx = x;
+                ny = y;
+                while (IsInBoard(nx - 2, ny + 2))
+                {
+                    //lewy doł
+                    if (_pieces[ColRowToPos(nx - 1, ny + 1)].Player == enemy && _pieces[ColRowToPos(nx - 2, ny + 2)].Player == Player.None)
+                        hit = true;
+                    else { nx -= 1; ny += 1; }
+                }
+
+                nx = x;
+                ny = y;
+                while (IsInBoard(nx - 2, ny - 2))
+                {
+                    //lewy gora
+                    if (_pieces[ColRowToPos(nx - 1, ny - 1)].Player == enemy && _pieces[ColRowToPos(nx - 2, ny - 2)].Player == Player.None)
+                        hit = true;
+                    else { nx -= 1; ny -= 1; }
+                }
+
+                nx = x;
+                ny = y;
+                while (IsInBoard(nx + 2, ny - 2))
+                {
+                    //prawa gora
+                    if (_pieces[ColRowToPos(nx + 1, ny - 1)].Player == enemy && _pieces[ColRowToPos(nx + 2, ny - 2)].Player == Player.None)
+                        hit = true;
+                    else { nx += 1; ny -= 1; }
+                }
+            }
+            catch (System.Exception e)
+            {
+                
+            }
+            return hit;
         }
         #endregion
 
@@ -469,7 +517,7 @@ namespace Checkers.Logic
         #region ComputerMayAttack
         private static IEnumerable<Move> ComputerMayAttack(IList<int> board, int i)
         {
-            if (board[i] != -1)
+            if (board[i] == 0 || board[i] == 1 || board[i] == 2)
                 return null;
 
             var attacks = new List<Move>();
@@ -555,7 +603,7 @@ namespace Checkers.Logic
                 return;
             }
 
-            MessageBox.Show("from " + move.GetFrom() + " to " + move.GetTo() + " to remove pawns: " + move.ToRemove.Count);
+          //  MessageBox.Show("from " + move.GetFrom() + " to " + move.GetTo() + " to remove pawns: " + move.ToRemove.Count);
 
             var info = new Info();
             info.ChangeFields(Player.Black, PieceType.Pawn,
