@@ -36,17 +36,6 @@ namespace Checkers.Logic
             _maxDepth = value + 1;
         }
 
-        /*
-        private readonly int[] _tableWeight = { 4, 4, 4, 4, 
-                                                4, 3, 3, 3,
-                                                3, 2, 2, 4,
-                                                4, 2, 1, 3,
-                                                3, 1, 2, 4,
-                                                4, 2, 2, 3,
-                                                3, 3, 3, 4,
-                                                4, 4, 4, 4};
-        */
-
         /// <summary>
         /// Konstruktor. Tworzy logikę z parametru wejściowego.
         /// </summary>
@@ -205,14 +194,14 @@ namespace Checkers.Logic
                     colorForce += CalculateValueLevel(i, false);
                     colorForce += CalculateValueEdge(i);
                     colorForce += CalculateValuePiece(piece, false);
-                    colorForce += CalculateValueHit( i, false, lboard );
+                    colorForce += CalculateValueHit(i, false, lboard);
                 }
                 else
                 {
                     enemyForce += CalculateValueLevel(i, true);
                     enemyForce += CalculateValueEdge(i);
                     enemyForce += CalculateValuePiece(piece, true);
-                    colorForce += CalculateValueHit( i, true, lboard);
+                    colorForce += CalculateValueHit(i, true, lboard);
                 }
             }
 
@@ -287,9 +276,9 @@ namespace Checkers.Logic
         private static int CalculateValuePiece(int piece, bool white)
         {
             var value = 0;
-            
-            if (white)
-            {//ocena dal pionkow białych
+
+            if (white) //ocena dal pionkow białych
+            {
                 switch (piece)
                 {
                     case 1:
@@ -315,6 +304,192 @@ namespace Checkers.Logic
 
             return value;
         }
+
+        /// <summary>
+        /// Metoda oceniajaca szanse bicia.
+        /// </summary>
+        /// <param name="pos">rozpatrywanan pozycja</param>
+        /// <param name="white">jaki kolor </param>
+        /// <param name="board">stan planszy na dana chwile</param>
+        /// <returns>Wartosc funkcji oceniajacej</returns>
+        private static int CalculateValueHit(int pos, bool white, IList<int> board)
+        {
+            var value = 0;
+
+            if (white) //bicia dla białych
+            {
+                if (pos >= 0 && pos <= 23)
+                {
+                    if (pos % 8 == 0) // pionki pod lewa sciana bez lewego bicia lub pole od
+                    {
+                        if (board[pos + 4] == -1 || board[pos + 4] == -2) //bicie po prawym skosie
+                        {
+                            value = board[pos + 9] == 0 ? 8 : 3;
+                        }
+                        else
+                        {
+                            value = 2;
+                        }
+
+                    }
+                    else if ((pos - 4) % 8 == 0)
+                    {
+                        if (board[pos + 5] == -1 || board[pos + 5] == -2) //bicie po prawym skosie
+                        {
+                            value = board[pos + 9] == 0 ? 8 : 3;
+                        }
+                        else
+                        {
+                            value = 2;
+                        }
+                    }
+                    else if ((pos + 1) % 8 == 0) //pionki pod prawa sciana bez prawego bicia
+                    {
+                        if (board[pos + 4] == -1 || board[pos + 4] == -2) // bicie poo lewym skosie
+                        {
+                            value = board[pos + 7] == 0 ? 8 : 3;
+
+                        }
+                        else
+                        {
+                            value = 2;
+                        }
+                    }
+                    else if ((pos + 5) % 8 == 0)
+                    {
+                        if (board[pos + 3] == -1 || board[pos + 3] == -2) // bicie poo lewym skosie
+                        {
+                            value = board[pos + 7] == 0 ? 8 : 3;
+
+                        }
+                        else
+                        {
+                            value = 2;
+                        }
+                    }
+                    else
+                    {
+                        var y = pos / 4;
+                        if (y % 2 == 0) //okreslamy w ktorym rzedzie jestesmy
+                        {
+                            if (board[pos + 3] == -1 || board[pos + 3] == -2) // bicie poo lewym skosie
+                            {
+                                value = board[pos + 7] == 0 ? 8 : 3;
+
+                            }
+                            else if (board[pos + 4] == -1 || board[pos + 4] == -2) //bicie po prawym skosie
+                            {
+                                value = board[pos + 9] == 0 ? 8 : 3;
+                            }
+                        }
+                        else
+                        {
+                            if (board[pos + 4] == -1 || board[pos + 4] == -2) // bicie poo lewym skosie
+                            {
+                                value = board[pos + 7] == 0 ? 8 : 3;
+                            }
+                            else if (board[pos + 5] == -1 || board[pos + 5] == -2) //bicie po prawym skosie
+                            {
+                                value = board[pos + 9] == 0 ? 8 : 3;
+                            }
+                        }
+
+                    }
+                }
+                else if (pos >= 23 && pos <= 31) //pola bez mozliwosci bicia
+                {
+                    value = 2;
+                }
+            }
+            else //bicia dla czarnych
+            {
+                if (pos >= 8 && pos <= 31)
+                {
+                    if (pos % 8 == 0) // pionki pod lewa sciana bez lewego bicia
+                    {
+                        if (board[pos - 4] == -1 || board[pos - 4] == -2) //bicie po prawym skosie
+                        {
+                            value = board[pos - 7] == 0 ? 8 : 3;
+                        }
+                        else
+                        {
+                            value = 2;
+                        }
+
+                    }
+                    else if ((pos - 4) % 8 == 0)
+                    {
+                        if (board[pos - 3] == -1 || board[pos - 3] == -2) //bicie po prawym skosie
+                        {
+                            value = board[pos - 7] == 0 ? 8 : 3;
+                        }
+                        else
+                        {
+                            value = 2;
+                        }
+                    }
+                    else if ((pos + 1) % 8 == 0) //pionki pod prawa sciana bez prawego bicia
+                    {
+                        if (board[pos - 4] == -1 || board[pos - 4] == -2) // bicie poo lewym skosie
+                        {
+                            value = board[pos - 9] == 0 ? 8 : 3;
+
+                        }
+                        else
+                        {
+                            value = 2;
+                        }
+                    }
+                    else if ((pos + 3) % 8 == 0)
+                    {
+                        if (board[pos - 5] == -1 || board[pos - 5] == -2) // bicie poo lewym skosie
+                        {
+                            value = board[pos - 9] == 0 ? 8 : 3;
+
+                        }
+                        else
+                        {
+                            value = 2;
+                        }
+                    }
+                    else
+                    {
+                        var y = pos / 4;
+                        if (y % 2 == 0) //okreslamy w ktorym rzedzie jestesmy
+                        {
+                            if (board[pos - 5] == -1 || board[pos - 5] == -2) // bicie poo lewym skosie
+                            {
+                                value = board[pos - 9] == 0 ? 8 : 3;
+
+                            }
+                            else if (board[pos - 4] == -1 || board[pos - 4] == -2) //bicie po prawym skosie
+                            {
+                                value = board[pos - 7] == 0 ? 8 : 3;
+                            }
+                        }
+                        else
+                        {
+                            if (board[pos - 4] == -1 || board[pos - 4] == -2) // bicie poo lewym skosie
+                            {
+                                value = board[pos - 9] == 0 ? 8 : 3;
+
+                            }
+                            else if (board[pos - 3] == -1 || board[pos - 3] == -2) //bicie po prawym skosie
+                            {
+                                value = board[pos - 7] == 0 ? 8 : 3;
+                            }
+                        }
+
+                    }
+                }
+                else if (pos >= 23 && pos <= 31) //pola bez mozliwosci bicia
+                {
+                    value = 2;
+                }
+            }
+
+            return value;
+        }
         #endregion
 
         /// <summary>
@@ -326,244 +501,5 @@ namespace Checkers.Logic
         {
             return depth > _maxDepth;
         }
-
-        /// <summary>
-        /// Metoda oceniajaca szanse bicia
-        /// </summary>
-        /// <param name="pos">rozpatrywanan pozycja</param>
-        /// <param name="white">jaki kolor </param>
-        /// <param name="board">stan planszy na dana chwile</param>
-        /// <returns>Wartosc funkcji oceniajacej</returns>
-        private static int CalculateValueHit(int pos, bool white, int[] board)
-        {
-            int value = 0;
-
-            if (white)
-            {
-                //bicia dla białych
-                
-                if (pos >= 0 && pos <= 23)
-                {
-                    if(pos%8==0 )// pionki pod lewa sciana bez lewego bicia lub pole od
-                    {
-                        if (board[pos + 4] == -1 || board[pos + 4] == -2)//bicie po prawym skosie
-                        {
-                            if (board[pos + 9] == 0)
-                                value = 8;
-                            else
-                                value = 3;
-                        }
-                        else { value = 2; }
-
-                    }
-                    else if ((pos - 4) % 8 == 0)
-                    {
-                        if (board[pos + 5] == -1 || board[pos + 5] == -2)//bicie po prawym skosie
-                        {
-                            if (board[pos + 9] == 0)
-                                value = 8;
-                            else
-                                value = 3;
-                        }
-                        else { value = 2; }
-                    }
-                    else if ((pos + 1) % 8 == 0 )//pionki pod prawa sciana bez prawego bicia
-                    {
-                        if (board[pos + 4] == -1 || board[pos + 4] == -2) // bicie poo lewym skosie
-                        {
-                            if (board[pos + 7] == 0)
-                                value = 8;
-                            else
-                                value = 3;
-
-                        }
-                        else { value = 2; }
-                    }
-                    else if ((pos + 5) % 8 == 0)
-                    {
-                        if (board[pos + 3] == -1 || board[pos + 3] == -2) // bicie poo lewym skosie
-                        {
-                            if (board[pos + 7] == 0)
-                                value = 8;
-                            else
-                                value = 3;
-
-                        }
-                        else { value = 2; }
-                    }
-                    else
-                    {
-                        var y = pos / 4;
-                        if (y % 2 == 0)//okreslamy w ktorym rzedzie jestesmy
-                        {
-                            if (board[pos + 3] == -1 || board[pos + 3] == -2) // bicie poo lewym skosie
-                            {
-                                if (board[pos + 7] == 0)
-                                    value = 8;
-                                else
-                                    value = 3;
-
-                            }
-                            else if (board[pos + 4] == -1 || board[pos + 4] == -2)//bicie po prawym skosie
-                            {
-                                if (board[pos + 9] == 0)
-                                    value = 8;
-                                else
-                                    value = 3;
-                            }
-                        }
-                        else
-                        {
-                            if (board[pos + 4] == -1 || board[pos + 4] == -2) // bicie poo lewym skosie
-                            {
-                                if (board[pos + 7] == 0)
-                                    value = 8;
-                                else
-                                    value = 3;
-
-                            }
-                            else if (board[pos + 5] == -1 || board[pos + 5] == -2)//bicie po prawym skosie
-                            {
-                                if (board[pos + 9] == 0)
-                                    value = 8;
-                                else
-                                    value = 3;
-                            }
-                        }
-
-                    }
-                }
-                else if (pos >= 23 && pos <= 31)//pola bez mozliwosci bicia
-                {
-                    value = 2;
-                }
-                /////
-            }
-            else
-            {
-                ////bicia dla czarnych
-               
-                if (pos >= 8 && pos <= 31)
-                {
-                    if (pos % 8 == 0 )// pionki pod lewa sciana bez lewego bicia
-                    {
-                        if (board[pos - 4] == -1 || board[pos - 4] == -2)//bicie po prawym skosie
-                        {
-                            if (board[pos  - 7] == 0)
-                                value = 8;
-                            else
-                                value = 3;
-                        }
-                        else { value = 2; }
-
-                    }
-                    else if ((pos - 4) % 8 == 0)
-                    {
-                        if (board[pos -3] == -1 || board[pos -3] == -2)//bicie po prawym skosie
-                        {
-                            if (board[pos - 7] == 0)
-                                value = 8;
-                            else
-                                value = 3;
-                        }
-                        else { value = 2; }
-                    }
-                    else if ((pos + 1) % 8 == 0)//pionki pod prawa sciana bez prawego bicia
-                    {
-                        if (board[pos - 4] == -1 || board[pos - 4] == -2) // bicie poo lewym skosie
-                        {
-                            if (board[pos - 9] == 0)
-                                value = 8;
-                            else
-                                value = 3;
-
-                        }
-                        else { value = 2; }
-                    }
-                    else if ((pos + 3) % 8 == 0)
-                    {
-                        if (board[pos - 5] == -1 || board[pos - 5] == -2) // bicie poo lewym skosie
-                        {
-                            if (board[pos - 9] == 0)
-                                value = 8;
-                            else
-                                value = 3;
-
-                        }
-                        else { value = 2; }
-                    }
-                    else
-                    {
-                        var y = pos / 4;
-                        if (y % 2 == 0)//okreslamy w ktorym rzedzie jestesmy
-                        {
-                            if (board[pos - 5] == -1 || board[pos -5] == -2) // bicie poo lewym skosie
-                            {
-                                if (board[pos - 9] == 0)
-                                    value = 8;
-                                else
-                                    value = 3;
-
-                            }
-                            else if (board[pos - 4] == -1 || board[pos - 4] == -2)//bicie po prawym skosie
-                            {
-                                if (board[pos - 7] == 0)
-                                    value = 8;
-                                else
-                                    value = 3;
-                            }
-                        }
-                        else
-                        {
-                            if (board[pos - 4] == -1 || board[pos - 4] == -2) // bicie poo lewym skosie
-                            {
-                                if (board[pos - 9] == 0)
-                                    value = 8;
-                                else
-                                    value = 3;
-
-                            }
-                            else if (board[pos - 3] == -1 || board[pos - 3] == -2)//bicie po prawym skosie
-                            {
-                                if (board[pos -7 ] == 0)
-                                    value = 8;
-                                else
-                                    value = 3;
-                            }
-                        }
-
-                    }
-                }
-                else if (pos >= 23 && pos <= 31)//pola bez mozliwosci bicia
-                {
-                    value = 2;
-                }
-            }
-
-            return value;
-        }
-        
-
-        /*
-        private int CalculateValue(int piece, int pos)
-        {
-            int value;
-
-            if (piece == 1) //Simple piece
-                if (pos >= 4 && pos <= 7)
-                    value = 7;
-                else
-                    value = 5;
-            else if (piece != -1) //Simple piece
-                if (pos >= 24 && pos <= 27)
-                    value = 7;
-                else
-                    value = 5;
-            else // king piece
-                value = 10;
-
-            return value * _tableWeight[pos];
-        }
-        */
     }
 }

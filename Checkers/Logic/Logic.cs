@@ -52,8 +52,7 @@ namespace Checkers.Logic
         }
         #endregion
 
-        // TODO: dodać sprawdzanie dla obiektów typu Queen
-        #region MayAttack - sprawdza tylko dla obiektów typu Pawn
+        #region MayAttack - GOTOWE
         private bool MayAttack(int position)
         {
             var player = CurrentPlayer == Player.White ? 1 : -1;
@@ -78,29 +77,33 @@ namespace Checkers.Logic
             var bxFlB = x - 2;
             var bxFrB = x + 2;
             if (_pieces[position].Type == PieceType.Pawn)
-            {
-            return IsInBoard(xNl, yN) && _pieces[ColRowToPos(xNl, yN)].Player == enemy &&
-                   IsInBoard(xFl, yF) && _pieces[ColRowToPos(xFl, yF)].Player == Player.None ||
-                   IsInBoard(xNr, yN) && _pieces[ColRowToPos(xNr, yN)].Player == enemy &&
-                   IsInBoard(xFr, yF) && _pieces[ColRowToPos(xFr, yF)].Player == Player.None ||
+                return IsInBoard(xNl, yN) && _pieces[ColRowToPos(xNl, yN)].Player == enemy &&
+                       IsInBoard(xFl, yF) && _pieces[ColRowToPos(xFl, yF)].Player == Player.None ||
+                       IsInBoard(xNr, yN) && _pieces[ColRowToPos(xNr, yN)].Player == enemy &&
+                       IsInBoard(xFr, yF) && _pieces[ColRowToPos(xFr, yF)].Player == Player.None ||
 
-                   IsInBoard(bxNl, byN) && _pieces[ColRowToPos(bxNl, byN)].Player == enemy &&
-                   IsInBoard(bxFlB, bYFb) && _pieces[ColRowToPos(bxFlB, bYFb)].Player == Player.None ||
-                   IsInBoard(bxNr, byN) && _pieces[ColRowToPos(bxNr, byN)].Player == enemy &&
-                   IsInBoard(bxFrB, bYFb) && _pieces[ColRowToPos(bxFrB, bYFb)].Player == Player.None;
-            }
+                       IsInBoard(bxNl, byN) && _pieces[ColRowToPos(bxNl, byN)].Player == enemy &&
+                       IsInBoard(bxFlB, bYFb) && _pieces[ColRowToPos(bxFlB, bYFb)].Player == Player.None ||
+                       IsInBoard(bxNr, byN) && _pieces[ColRowToPos(bxNr, byN)].Player == enemy &&
+                       IsInBoard(bxFrB, bYFb) && _pieces[ColRowToPos(bxFrB, bYFb)].Player == Player.None;
+            
 
-              var hit = false;
-                var nx = x;
-                var ny = y;
-                 try
+            var hit = false;
+            var nx = x;
+            var ny = y;
+            try
             {
                 while (IsInBoard(nx + 2, ny + 2))
                 {
                     //prawy doł
-                    if (_pieces[ColRowToPos(nx + 1, ny + 1)].Player == enemy && _pieces[ColRowToPos(nx + 2, ny + 2)].Player == Player.None)
+                    if (_pieces[ColRowToPos(nx + 1, ny + 1)].Player == enemy &&
+                        _pieces[ColRowToPos(nx + 2, ny + 2)].Player == Player.None)
                         hit = true;
-                    else { nx += 1; ny -= 1; }
+                    else
+                    {
+                        nx += 1; 
+                        ny -= 1;
+                    }
                 }
 
                 nx = x;
@@ -108,9 +111,14 @@ namespace Checkers.Logic
                 while (IsInBoard(nx - 2, ny + 2))
                 {
                     //lewy doł
-                    if (_pieces[ColRowToPos(nx - 1, ny + 1)].Player == enemy && _pieces[ColRowToPos(nx - 2, ny + 2)].Player == Player.None)
+                    if (_pieces[ColRowToPos(nx - 1, ny + 1)].Player == enemy && 
+                        _pieces[ColRowToPos(nx - 2, ny + 2)].Player == Player.None)
                         hit = true;
-                    else { nx -= 1; ny += 1; }
+                    else 
+                    { 
+                        nx -= 1; 
+                        ny += 1; 
+                    }
                 }
 
                 nx = x;
@@ -118,9 +126,14 @@ namespace Checkers.Logic
                 while (IsInBoard(nx - 2, ny - 2))
                 {
                     //lewy gora
-                    if (_pieces[ColRowToPos(nx - 1, ny - 1)].Player == enemy && _pieces[ColRowToPos(nx - 2, ny - 2)].Player == Player.None)
+                    if (_pieces[ColRowToPos(nx - 1, ny - 1)].Player == enemy &&
+                        _pieces[ColRowToPos(nx - 2, ny - 2)].Player == Player.None)
                         hit = true;
-                    else { nx -= 1; ny -= 1; }
+                    else
+                    {
+                        nx -= 1; 
+                        ny -= 1;
+                    }
                 }
 
                 nx = x;
@@ -128,9 +141,14 @@ namespace Checkers.Logic
                 while (IsInBoard(nx + 2, ny - 2))
                 {
                     //prawa gora
-                    if (_pieces[ColRowToPos(nx + 1, ny - 1)].Player == enemy && _pieces[ColRowToPos(nx + 2, ny - 2)].Player == Player.None)
+                    if (_pieces[ColRowToPos(nx + 1, ny - 1)].Player == enemy
+                        && _pieces[ColRowToPos(nx + 2, ny - 2)].Player == Player.None)
                         hit = true;
-                    else { nx += 1; ny -= 1; }
+                    else
+                    {
+                        nx += 1; 
+                        ny -= 1;
+                    }
                 }
             }
             catch (Exception)
@@ -177,7 +195,6 @@ namespace Checkers.Logic
                 if (x == toCol && y == toRow)
                     return goodDir + MustAttack();
 
-                // If it wasn't a simple move it can only be an attack move
                 if (x + incX == toCol && y + incY == toRow &&
                     _pieces[ColRowToPos(x, y)].Player == enemy)
                     return 1;
@@ -190,7 +207,6 @@ namespace Checkers.Logic
                 y += incY;
             }
 
-            // Simple move with a king piece
             if (x == toCol && y == toRow)
                 return MustAttack();
 
@@ -439,7 +455,7 @@ namespace Checkers.Logic
             var moves = new List<Move>();
             var attack = ComputerMustAttack(board);
 
-            if (attack != null && attack.Count != 0) // must attack (only piece)
+            if (attack != null && attack.Count != 0) 
                 return attack; 
 
             for (var k = 0; k < _pieces.Count; k++)
@@ -450,7 +466,7 @@ namespace Checkers.Logic
 
                     switch (board[k])
                     {
-                        case -1: // It's a simple piece
+                        case -1: 
                             if (IsInBoard(x + 1, y - 1) && board[ColRowToPos(x + 1, y - 1)] == 0)
                             {
                                 moves.Add(new Move(k, ColRowToPos(x + 1, y - 1)));
@@ -460,8 +476,8 @@ namespace Checkers.Logic
                                 moves.Add(new Move(k, ColRowToPos(x - 1, y - 1)));
                             }
                             break;
-                        case -2: // It's a king piece
-                            // See the diagonal \v
+                        case -2: 
+                            // prawo dół
                             var i = x + 1;
                             var j = y + 1;
 
@@ -473,7 +489,7 @@ namespace Checkers.Logic
                                 j++;
                             }
 
-                            // See the diagonals ^\
+                            // lewo góra
                             i = x - 1;
                             j = y - 1;
 
@@ -485,7 +501,7 @@ namespace Checkers.Logic
                                 j--;
                             }
 
-                            // See the diagonals /^
+                            // prawo góra
                             i = x + 1;
                             j = y - 1;
                             while (i <= 7 && j >= 0 && board[ColRowToPos(i, j)] == 0)
@@ -496,7 +512,7 @@ namespace Checkers.Logic
                                 j--;
                             }
 
-                            // See the diagonals v/
+                            // lewo dół
                             i = x - 1;
                             j = y + 1;
                             while (i >= 0 && j <= 7 && board[ColRowToPos(i, j)] == 0)
@@ -594,8 +610,7 @@ namespace Checkers.Logic
         }
         #endregion
 
-        // TODO: sprawdzić czy działa
-        #region MoveEnemy - ?
+        #region MoveEnemy - GOTOWE
         public void MoveEnemy(Move move)
         {
             if (move == null)
@@ -603,8 +618,6 @@ namespace Checkers.Logic
                 MessageBox.Show("No possible moves for computer.");
                 return;
             }
-
-          //  MessageBox.Show("from " + move.GetFrom() + " to " + move.GetTo() + " to remove pawns: " + move.ToRemove.Count);
 
             var info = new Info();
             info.ChangeFields(Player.Black, PieceType.Pawn,
