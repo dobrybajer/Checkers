@@ -135,7 +135,7 @@ namespace Checkers.Logic
             }
             catch (Exception)
             {
-                
+                return false;
             }
             return hit;
         }

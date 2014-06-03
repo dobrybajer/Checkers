@@ -233,24 +233,24 @@ namespace Checkers.Logic
             
             if (white) // jesli komputer gra bialymi
             {
-                if (pos >= 0 && pos <= 7) // pierwszy poziom
+                if (pos >= 0 && pos <= 7) // 1 poziom najdalej do lini promujacej
                     value = 1;
                 else if (pos >= 8 && pos <= 15) // 2 poziom
                     value = 2;
                 else if (pos >= 16 && pos <= 23) // 3 poziom
                     value = 3;
-                else if (pos >= 24 && pos <= 31) // 4 poziom
+                else if (pos >= 24 && pos <= 31) // 4 poziom najblizej lini promujacej
                     value = 4;
             }
             else // komputer gra czarnymi
             {
-                if (pos >= 24 && pos <= 32)//1 poziom
+                if (pos >= 24 && pos <= 32)//1 poziom najdalej do lini promujacej
                     value = 1;
                 else if (pos >= 16 && pos <= 23)//2 poziom
                     value = 2;
                 else if (pos >= 8 && pos <= 15)//3 poziom
                     value = 3;
-                else if (pos >= 0 && pos <= 7)//4 poziom
+                else if (pos >= 0 && pos <= 7)//4 poziom najblizej lini promujacej
                     value = 4;
             }
 
@@ -267,13 +267,13 @@ namespace Checkers.Logic
             int value;
 
             if ((pos >= 0 && pos <= 3) || pos == 7 || pos == 8 || pos == 15 ||
-                pos == 16 || pos == 23 || pos == 24 || (pos >= 28 && pos <= 31)) // obszar 1
+                pos == 16 || pos == 23 || pos == 24 || (pos >= 28 && pos <= 31)) // obszar 1 czyli skraj planszy
                 value = 2;
             else if ((pos >= 4 && pos <= 6) || pos == 11 || pos == 12 ||
-                pos == 19 || pos == 20 || (pos >= 25 && pos <= 27)) // obszar 2
+                pos == 19 || pos == 20 || (pos >= 25 && pos <= 27)) // obszar 2 obszar oddalony o jeden od kranca planszy
                 value = 3;
             else
-                value = 4; // obszar 3
+                value = 4; // obszar 3 srodek planszy
 
             return value;
         }
@@ -289,14 +289,14 @@ namespace Checkers.Logic
             var value = 0;
             
             if (white)
-            {
+            {//ocena dal pionkow białych
                 switch (piece)
                 {
                     case 1:
-                        value = 6;
+                        value = 10;//zwykly pionek
                         break;
                     case 2:
-                        value = 8;
+                        value = 15;//damka
                         break;
                 }
             }
@@ -305,10 +305,10 @@ namespace Checkers.Logic
                 switch (piece)
                 {
                     case -1:
-                        value = 6;
+                        value = 10;//zwykly pionek
                         break;
                     case -2:
-                        value = 8;
+                        value = 15;//damka
                         break;
                 }
             }
@@ -327,7 +327,13 @@ namespace Checkers.Logic
             return depth > _maxDepth;
         }
 
-
+        /// <summary>
+        /// Metoda oceniajaca szanse bicia
+        /// </summary>
+        /// <param name="pos">rozpatrywanan pozycja</param>
+        /// <param name="white">jaki kolor </param>
+        /// <param name="board">stan planszy na dana chwile</param>
+        /// <returns>Wartosc funkcji oceniajacej</returns>
         private static int CalculateValueHit(int pos, bool white, int[] board)
         {
             int value = 0;
